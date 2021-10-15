@@ -9,11 +9,8 @@ func TestDatabase(t *testing.T) {
 	closer := Connect()
 	defer closer()
 
-	files, err := GetFilesInDirectory("../data/img")
-	if err != nil {
-		panic(err)
-	}
-	if err = AddImages(files); err != nil {
+	files := GetImages()
+	if err := AddImages(files); err != nil {
 		panic(err)
 	}
 	records := []Record{

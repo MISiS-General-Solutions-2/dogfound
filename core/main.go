@@ -2,16 +2,12 @@ package main
 
 import (
 	"fmt"
-	"pet-track/api"
 	"pet-track/database"
 )
 
 func dbInitMock() {
-	files, err := database.GetFilesInDirectory("../data/img")
-	if err != nil {
-		panic(err)
-	}
-	if err = database.AddImages(files); err != nil {
+	files := database.GetImages()
+	if err := database.AddImages(files); err != nil {
 		panic(err)
 	}
 	records := []database.Record{
@@ -40,8 +36,27 @@ func dbInitMock() {
 }
 
 func main() {
-	closer := database.Connect()
-	defer closer()
+	// closer := database.Connect()
+	// defer closer()
 
-	api.Serve()
+	// api.Serve()
+
+	// imgs := []string{
+	// 	`C:\Users\antonvlasov\Desktop\img\660_cut.pgm`,
+	// 	`C:\Users\antonvlasov\Desktop\img\inverted.pgm`,
+	// }
+	// dest := `C:\Users\antonvlasov\Desktop\img\merged.pgm`
+
+	database.PopulateWithImages(`D:\Papka\work\MGS2\data\train`)
+	// if parsed, err := cv.GetImagesText(imgs); err != nil {
+	// 	panic(err)
+	// } else {
+	// 	for i := range parsed {
+	// 		if parsed[i] == "" {
+	// 			fmt.Printf("did not parse image %v\n", imgs[i])
+	// 		}
+	// 	}
+	// 	//fmt.Println(parsed)
+	// }
+
 }

@@ -3,8 +3,12 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -19,7 +23,8 @@ const (
 	FeatureColor = "color"
 	FeatureTail  = "tail"
 
-	imgPath = "../data/img/"
+	imagePath = "../data/img/"
+	TempDir   = "../data/temp/"
 )
 
 type Record struct {
@@ -29,7 +34,7 @@ type Record struct {
 }
 
 func GetFilePath(name string) string {
-	return imgPath + name
+	return imagePath + name
 }
 func Connect() func() {
 	var err error
@@ -63,9 +68,16 @@ func GetFilesInDirectory(dir string) ([]string, error) {
 	}
 	result := make([]string, len(files))
 	for i, f := range files {
-		result[i] = f.Name()
+		result[i] = dir + f.Name()
 	}
 	return result, nil
+}
+func GetImages() []string {
+	imgs, err := GetFilesInDirectory(imagePath)
+	if err != nil {
+		panic(err)
+	}
+	return imgs
 }
 func AddImages(imgs []string) error {
 	tx, err := db.Begin()
@@ -147,4 +159,38 @@ func GetImagesByFeatures(features map[string]interface{}) ([]string, error) {
 		return nil, err
 	}
 	return res, nil
+}
+func PopulateWithImages(path string) error {
+	reFileName := regexp.MustCompile(`^\d+\.jpg`)
+	err := filepath.Walk(path,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !reFileName.MatchString(info.Name()) {
+				return nil
+			}
+
+			dest, err := os.OpenFile(imagePath+info.Name(), os.O_CREATE|os.O_RDWR, 0600)
+			if err != nil {
+				return err
+			}
+			defer dest.Close()
+
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			_, err = io.Copy(dest, file)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	if err != nil {
+		return err
+	}
+	return nil
 }
