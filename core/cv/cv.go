@@ -1,5 +1,11 @@
 package cv
 
+/*
+#cgo LDFLAGS: -L${SRCDIR}/../../libs -lPgm2asc
+#include <stdlib.h>
+char *parse_pgm(int img_data_len, char *image, int argn, char *argv[]);
+*/
+import "C"
 import (
 	"bufio"
 	"bytes"
@@ -11,7 +17,7 @@ import (
 	"os/exec"
 	"pet-track/database"
 	"regexp"
-	"strings"
+	"unsafe"
 
 	"gocv.io/x/gocv"
 )
@@ -24,57 +30,28 @@ var (
 	reCameraName = regexp.MustCompile(`[A-Z]*?_\S*?_\S*`)
 )
 
-// func MergePGM(src []string, dest string) error {
-// 	out, err := os.OpenFile(dest, os.O_CREATE|os.O_RDWR, 0600)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer out.Close()
-// 	for _, img := range src {
-// 		f, err := os.Open(img)
-// 		if err != nil {
-// 			return err
-// 		}
+func CParseImage(img []byte, args []string) string {
+	argv := make([]*C.char, len(args))
+	for i, s := range args {
+		cs := C.CString(s)
+		defer C.free(unsafe.Pointer(cs))
+		argv[i] = cs
+	}
 
-// 		n, err := io.Copy(out, f)
-// 		fmt.Println(n)
-// 		if err != nil {
-// 			f.Close()
-// 			return err
-// 		}
-// 		f.Close()
-// 	}
-// 	return nil
-// }
+	cres := C.parse_pgm(C.int(len(img)), (*C.char)(unsafe.Pointer(&img[0])), C.int(len(args)), &argv[0])
+	res := C.GoString(cres)
+	C.free(unsafe.Pointer(cres))
+	return res
+}
+
 func GetImagesText(imgs []string) ([]string, error) {
-	// unparsed, merged, err := RetrieveBlackTop(imgs)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// log.Print("retrieved tops")
-	// log.Printf("unparsed:%v\n", unparsed)
-	// if err = os.WriteFile(database.TempDir+`merged.pgm`, merged, 0600); err != nil {
-	// 	return nil, err
-	// }
-	// cmd := exec.Command(gocr, "-i", database.TempDir+`merged.pgm`, "-C", "0-9a-zA-Z")
-	// out, err := cmd.StdoutPipe()
-	// fmt.Println(cmd.Path, cmd.Args)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// log.Println("running...")
-	// if err = cmd.Start(); err != nil {
-	// 	log.Println(err)
-	// }
-	// parsed, err := ParseRecognized(out, unparsed, len(imgs))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	//return parsed, nil
 	parsed := make([]string, 0, len(imgs))
 	cb := func(top []byte) bool {
-		s, err := parseSingleImage(top)
+		if len(top) == 0 {
+			parsed = append(parsed, "")
+			return false
+		}
+		s, err := parseSingleImageDirect(top)
 		if err != nil {
 			panic(err)
 		}
@@ -88,6 +65,9 @@ func GetImagesText(imgs []string) ([]string, error) {
 	}
 
 	return parsed, nil
+}
+func parseSingleImageDirect(img []byte) (string, error) {
+	return CParseImage(img, []string{"-C", "0-9a-zA-Z"}), nil
 }
 func parseSingleImage(img []byte) (string, error) {
 	if err := os.WriteFile(database.TempDir+`merged.pgm`, img, 0600); err != nil {
@@ -151,14 +131,14 @@ func RetrieveBlackTop(file string, cb func([]byte) bool) error {
 		// contains some black top
 		if i < 5 {
 			log.Printf("non standard format for file %v\n", file)
-			err := os.Rename(file, `../data/special`+file[strings.LastIndexByte(file, '\\')+1:])
-			if err != nil {
-				log.Fatal(err)
-			}
+			// err := os.Rename(file, `../data/special`+file[strings.LastIndexByte(file, '\\')+1:])
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
 			cb(nil)
 			return nil
 		}
-		top = img.RowRange(0, i)
+		top = img.RowRange(0, i/4)
 	}
 	defer top.Close()
 
@@ -169,12 +149,6 @@ func RetrieveBlackTop(file string, cb func([]byte) bool) error {
 	if len(buf.GetBytes()) == 0 {
 		fmt.Println(file)
 	}
-	if !cb(buf.GetBytes()) {
-		// err := os.Rename(file, `../data/special/`+file[strings.LastIndexByte(file, '\\')+1:])
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-	}
-
+	cb(buf.GetBytes())
 	return nil
 }

@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "typeinfo": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "*.tcc": "c",
+        "algorithm": "c",
+        "random": "c",
+        "fstream": "c",
+        "istream": "c",
+        "ostream": "c",
+        "utility": "c"
+    }
+}
