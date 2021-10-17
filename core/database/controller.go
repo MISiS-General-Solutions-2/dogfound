@@ -24,7 +24,7 @@ const (
 	FeatureTail  = "tail"
 
 	imagePath = "../data/img/"
-	TempDir   = "../data/temp/"
+	TempDir   = `T:\TEMP\`
 )
 
 type Record struct {

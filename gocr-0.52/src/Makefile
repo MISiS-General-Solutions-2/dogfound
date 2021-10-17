@@ -105,10 +105,6 @@ lib$(PGMASCLIB).a: $(LIBOBJS)
 	$(AR) cru $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-libstatic_win: $(LIBOBJS)
-	$(AR) cru $@ $(LIBOBJS)
-	$(RANLIB) $@
-
 
 $(LIBOBJS): Makefile
 

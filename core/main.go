@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"pet-track/cv"
 	"pet-track/database"
-	"strconv"
 	"time"
 )
 
@@ -41,6 +39,20 @@ func dbInitMock() {
 	fmt.Println(imgs)
 }
 
+// func cleanMess(in, out string) error {
+// 	direntry, err := os.ReadDir(in)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, entry := range direntry {
+// 		if strings.HasPrefix(entry.Name(), "special") && strings.HasSuffix(entry.Name(), ".jpg") {
+// 			if err = os.Rename(in+entry.Name(), out+entry.Name()[len("special")+1:]); err != nil {
+// 				return err
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
 func main() {
 	// closer := database.Connect()
 	// defer closer()
@@ -54,62 +66,32 @@ func main() {
 	// // dest := `C:\Users\antonvlasov\Desktop\img\merged.pgm`
 
 	// //database.PopulateWithImages(`D:\Papka\work\MGS2\data\train`)
+	cv.RetrieveAllFromSpecial()
 	imgs := database.GetImages()
 
 	start := time.Now()
 
+	// image 607 should be parsed
 	if parsed, err := cv.GetImagesText(imgs); err != nil {
 		panic(err)
 	} else {
 		elapsed := time.Since(start)
 		log.Printf("took %v seconds", elapsed.Seconds())
 		unparsed := 0
+		logfile, err := os.OpenFile("parsed.log", os.O_CREATE|os.O_RDWR, 0600)
+		if err != nil {
+			panic(err)
+		}
+		defer logfile.Close()
+		log.SetOutput(logfile)
 		for i := range parsed {
 			if parsed[i] == "" {
 				unparsed += 1
 				//log.Printf("did not parse image %v\n", imgs[i])
 			}
+			log.Println(imgs[i], parsed[i])
 		}
-		fmt.Println(unparsed)
-		//fmt.Println(parsed)
+		fmt.Println("unparsed count: ", unparsed)
 	}
 
-	// img, err := os.ReadFile(`C:\Users\antonvlasov\Desktop\img\inverted.pgm`)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// c := cv.CallCLibMain(img, []string{"gocr", "-C", "0-9a-zA-Z"})
-	// fmt.Println(c)
-}
-func testCRead(imgfile, out string) error {
-	img, err := os.ReadFile(imgfile)
-	if err != nil {
-		panic(err)
-	}
-	log, err := os.Open(out)
-	if err != nil {
-		panic(err)
-	}
-	s := bufio.NewScanner(log)
-	i := 0
-	for s.Scan() {
-		line := s.Text()
-		logByte, err := strconv.Atoi(line)
-		if err != nil {
-			return err
-		}
-		if i >= len(img) {
-			return fmt.Errorf("too many values at log file")
-		}
-		lineByte := img[i]
-		if logByte != int(lineByte) {
-			return fmt.Errorf("different byte at pos %v: expected %v, got %v", i, img[i], line)
-		}
-		i += 1
-	}
-	if i != len(img) {
-		fmt.Println("different file lengths")
-	}
-	return nil
 }

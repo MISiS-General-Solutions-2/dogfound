@@ -352,7 +352,7 @@ char *get_concatenated_textlines_and_free_textlines(job_t *job) {
   */
   linecounter = 0;
   line = getTextLine(&(job->res.linelist), linecounter++);
-  const char *result = NULL;
+  char *result = NULL;
   while (line) {
     /* notice: decode() is shiftet to getTextLine since 0.38 */
     int sumlen;
