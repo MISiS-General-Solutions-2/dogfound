@@ -1,6 +1,9 @@
-data/**
-ocv/**
+core/data/**
+!core/data/apxi8
+
+gocv
 
 *.o
 *.a
 *.log
+.vscode

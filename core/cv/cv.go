@@ -1,7 +1,7 @@
 package cv
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../libs -lPgm2asc
+#cgo LDFLAGS: -L${SRCDIR}/../libs -lPgm2asc
 #include <stdlib.h>
 char *parse_pgm(int img_data_len, char *image, int argn, char *argv[]);
 */
@@ -15,7 +15,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"pet-track/database"
 	"regexp"
 	"strings"
@@ -31,7 +30,7 @@ const (
 var (
 	reCameraName = regexp.MustCompile(`[A-Z]+?_\S+?_\S+`)
 
-	apxi8 = gocv.IMRead("apxi8", gocv.IMReadGrayScale)
+	apxi8 = gocv.IMRead(database.DataPath+"apxi8", gocv.IMReadGrayScale)
 )
 
 func CParseImage(img []byte, args []string) string {
@@ -74,22 +73,23 @@ func parseSingleImageDirect(img []byte) (string, error) {
 	out := CParseImage(img, []string{"gocv", "-C", "0-9a-zA-Z"})
 	return ParseRecognized(strings.NewReader(out)), nil
 }
-func parseSingleImage(img []byte) (string, error) {
-	if err := os.WriteFile(`database.TempDir`+`top.pgm`, img, 0600); err != nil {
-		return "", err
-	}
-	defer os.Remove(database.TempDir + `top.pgm`)
 
-	cmd := exec.Command(gocr, "-i", database.TempDir+`top.pgm`, "-C", "0-9a-zA-Z")
-	out, err := cmd.StdoutPipe()
-	if err != nil {
-		return "", err
-	}
-	if err = cmd.Start(); err != nil {
-		log.Println(err)
-	}
-	return ParseRecognized(out), nil
-}
+// func parseSingleImage(img []byte) (string, error) {
+// 	if err := os.WriteFile(`database.TempDir`+`top.pgm`, img, 0600); err != nil {
+// 		return "", err
+// 	}
+// 	defer os.Remove(database.TempDir + `top.pgm`)
+
+// 	cmd := exec.Command(gocr, "-i", database.TempDir+`top.pgm`, "-C", "0-9a-zA-Z")
+// 	out, err := cmd.StdoutPipe()
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	if err = cmd.Start(); err != nil {
+// 		log.Println(err)
+// 	}
+// 	return ParseRecognized(out), nil
+// }
 func ParseRecognized(r io.Reader) string {
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -174,7 +174,7 @@ func RetrieveBlackTop(file string, cb func([]byte) bool) error {
 	// drop too small images
 	if img.Cols() < cropRect.Max.X || img.Rows() < cropRect.Max.Y {
 		cb(nil)
-		MoveToFile(file, `../data/special/`)
+		//MoveToFile(file, database.data `/special/`)
 		return nil
 	}
 
@@ -186,7 +186,7 @@ func RetrieveBlackTop(file string, cb func([]byte) bool) error {
 	if int(shouldBeBlack.Mean().Val1) > thresh {
 		log.Println("not black")
 		cb(nil)
-		MoveToFile(file, `../data/special/`)
+		//MoveToFile(file, `../data/special/`)
 		return nil
 	}
 
@@ -239,12 +239,14 @@ func RetrieveBlackTop(file string, cb func([]byte) bool) error {
 	if err != nil {
 		return err
 	}
-	found := cb(buf.GetBytes())
-
-	if !found {
-		MoveToFile(file, `../data/special/`)
-	}
+	cb(buf.GetBytes())
 	return nil
+	// found := cb(buf.GetBytes())
+
+	// if !found {
+	// 	//MoveToFile(file, `../data/special/`)
+	// }
+	// return nil
 	// if err != nil {
 	// 	return err
 	// }

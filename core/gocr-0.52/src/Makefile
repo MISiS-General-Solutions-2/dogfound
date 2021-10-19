@@ -90,15 +90,8 @@ $(PROGRAM): $(LIBOBJS) gocr.o
 	$(CC) -o $@ $(LDFLAGS) gocr.o $(LIBOBJS) $(LIBS)
 	# if test -r $(PROGRAM); then cp $@ ../bin; fi
 
-libs: lib$(PGMASCLIB).a lib$(PGMASCLIB).0.52.so
+lib.a: lib$(PGMASCLIB).a
 
-#lib$(PGMASCLIB).0.52.so: $(LIBOBJS)
-#	$(CC) -fPIC -shared -Wl,-h$@ -o $@ $(LIBOBJS)
-lib$(PGMASCLIB).0.52.so: $(LIBOBJS:%.o=%.c) Makefile
-	# .o must be build with -fPIC too (Aug2010 JS)
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-h$@ -o $@ $(LIBOBJS:%.o=%.c)
-	-rm -f lib$(PGMASCLIB).so  # set new link
-	-ln -s $@ lib$(PGMASCLIB).so
 
 lib$(PGMASCLIB).a: $(LIBOBJS)
 	#	-rm -f $@

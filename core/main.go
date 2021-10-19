@@ -66,7 +66,7 @@ func main() {
 	// // dest := `C:\Users\antonvlasov\Desktop\img\merged.pgm`
 
 	// //database.PopulateWithImages(`D:\Papka\work\MGS2\data\train`)
-	cv.RetrieveAllFromSpecial()
+	//cv.RetrieveAllFromSpecial()
 	imgs := database.GetImages()
 
 	start := time.Now()

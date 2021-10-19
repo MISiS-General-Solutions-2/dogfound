@@ -23,8 +23,8 @@ const (
 	FeatureColor = "color"
 	FeatureTail  = "tail"
 
-	imagePath = "../data/img/"
-	TempDir   = `T:\TEMP\`
+	DataPath  = "/opt/pet-track/data/"
+	imagePath = DataPath + "img/"
 )
 
 type Record struct {
@@ -38,7 +38,8 @@ func GetFilePath(name string) string {
 }
 func Connect() func() {
 	var err error
-	db, err = sql.Open("sqlite3", "../data/features.db")
+	db, err = sql.Open("sqlite3",
+		DataPath+"features.db")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,0 +1,4 @@
+			 GOCR (JOCR at SF.net)
+
+This is a modified version of gocr-0.52 downloaded from http://jocr.sourceforge.net.
+It is created to use pgm images directly from memory instead of CLI.
