@@ -1,32 +1,37 @@
 package processor
 
 import (
-	"io"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
-	phttp "pet-track/http"
+	"pet-track/cv"
+	"pet-track/database"
 )
 
-func GetImageText(cfg *Config, image string) error {
-	file, err := os.Open(image)
+func ProcessAllImages(cfg *Config) error {
+	dir, imgs, err := database.GetImages()
 	if err != nil {
 		return err
 	}
-	resp, err := phttp.Upload(http.DefaultClient, cfg.OCRServerURL, map[string]io.Reader{"file": file})
-	resp, err = phttp.RecieveResponse(resp, http.StatusOK, err)
-	if err != nil {
-		return err
-	}
-	defer phttp.ClearReponse(resp)
 
-	b, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	//for faster test
+	imgs = imgs[:10]
+
+	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
 	if err != nil {
 		return err
 	}
-	log.Printf("%s\n", b)
 
-	return nil
+	classReqs := make([]database.SetClassesRequest, len(imgs))
+	for i := range classReqs {
+		classReqs[i].Filename = imgs[i]
+	}
+	if err := database.SetClasses(classReqs); err != nil {
+		return err
+	}
+
+	addrReqs := make([]database.SetAddressRequest, len(imgs))
+	for i := range addrReqs {
+		addrReqs[i].Filename = imgs[i]
+		addrReqs[i].CamID = camIDs[i]
+		addrReqs[i].Address = "addr"
+	}
+	return database.SetAddress(addrReqs)
 }

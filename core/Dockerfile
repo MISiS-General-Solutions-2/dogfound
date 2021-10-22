@@ -4,8 +4,7 @@ WORKDIR /app/
 
 COPY . ./
 
-RUN cd gocr-0.52/src; make lib.a;
-RUN cd /app/; mkdir libs;mv /app/gocr-0.52/src/libPgm2asc.a ./libs/
+RUN mkdir app;cd include/gocr-0.52/src; make lib.a; mv libPgm2asc.a /app/libs/
 
 RUN go build -o core .
 
@@ -16,5 +15,6 @@ RUN mkdir -p /opt/pet-track/data/img
 COPY ./data /opt/pet-track/data
 
 # TODO add sqlite3 
+COPY ./include/sqlite3 /usr/bin/sqlite3
 
 CMD ["/opt/pet-track/core"]

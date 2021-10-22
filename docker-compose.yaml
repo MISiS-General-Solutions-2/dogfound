@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  core:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    ports:
+          - "6000:6000"
