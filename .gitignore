@@ -7,3 +7,7 @@ gocv
 *.a
 *.log
 .vscode
+
+# Classification
+classificator/data
+.idea/
