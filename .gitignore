@@ -7,3 +7,4 @@ gocv
 *.a
 *.log
 .vscode
+.zip
