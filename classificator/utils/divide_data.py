@@ -3,7 +3,7 @@ import random
 import shutil
 
 DATA_PATH = "../data"
-INPUT_PATH = os.path.join(DATA_PATH, 'detect')
+INPUT_PATH = os.path.join(DATA_PATH, "detect")
 
 
 def main():

@@ -11,3 +11,5 @@ gocv
 # Classification
 classificator/data
 .idea/
+__pycache__/
+weights/

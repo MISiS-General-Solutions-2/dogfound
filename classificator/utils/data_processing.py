@@ -1,7 +1,8 @@
 import albumentations as A
 import cv2
-import torch
 import torchvision
+from albumentations.pytorch.transforms import ToTensorV2
+from torch.utils.data import DataLoader
 from torchvision.datasets.folder import IMG_EXTENSIONS
 
 
@@ -51,7 +52,7 @@ class AlbumentationsImageFolder(torchvision.datasets.DatasetFolder):
         return sample, target
 
 
-def train_val_dataloaders(train_path: str, val_path: str, batch_size: int):
+def train_val_dataloaders(cfg):
     """Form the dataloaders for training and validation and store them in the dictionary.
     :param train_path: path to images for trainin
     :param val_path: path to images for validation
@@ -60,32 +61,32 @@ def train_val_dataloaders(train_path: str, val_path: str, batch_size: int):
     """
     train_transform = A.Compose(
         [
-            A.Resize(224, 224),
+            A.Resize(cfg.size, cfg.size),
             A.Normalize(),
-            A.pytorch.transforms.ToTensorV2(),
+            ToTensorV2(),
         ]
     )
 
     val_transforms = A.Compose(
-        [A.Resize(224, 224), A.Normalize(), A.pytorch.transforms.ToTensorV2()]
+        [A.Resize(cfg.size, cfg.size), A.Normalize(), A.pytorch.transforms.ToTensorV2()]
     )
 
-    train_dataset = AlbumentationsImageFolder(train_path, train_transform)
-    val_dataset = AlbumentationsImageFolder(val_path, val_transforms)
+    train_dataset = AlbumentationsImageFolder(cfg.TRAIN_PATH, train_transform)
+    val_dataset = AlbumentationsImageFolder(cfg.VAL_PATH, val_transforms)
 
     dataloader = dict()
 
-    dataloader["train"] = torch.utils.data.DataLoader(
+    dataloader["train"] = DataLoader(
         dataset=train_dataset,
-        batch_size=batch_size,
+        batch_size=cfg.batch_size,
         shuffle=True,
         num_workers=4,
         drop_last=True,
     )
 
-    dataloader["val"] = torch.utils.data.DataLoader(
+    dataloader["val"] = DataLoader(
         dataset=val_dataset,
-        batch_size=batch_size,
+        batch_size=cfg.batch_size,
         shuffle=True,
         num_workers=4,
         drop_last=True,
