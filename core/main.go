@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	database.PopulateWithImages("/home/vlasov/folder/mgs2/pet-track/core/data/img.test")
 	closer := database.Connect()
 	defer closer()
 

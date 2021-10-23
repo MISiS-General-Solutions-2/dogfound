@@ -2,7 +2,8 @@ core/data/**
 !core/data/apxi8
 !core/data/pet-track.db
 
-gocv
+venv/**
+__*
 
 *.o
 *.a

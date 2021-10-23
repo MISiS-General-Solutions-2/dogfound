@@ -144,7 +144,6 @@ func fixNumbers(b []byte) []byte {
 
 // it is assumed number always has same position and pixel sizes
 func retrieveBlackTop(file string, cb func([]byte) bool) error {
-
 	img := gocv.IMRead(file, gocv.IMReadGrayScale)
 	defer img.Close()
 
@@ -153,19 +152,19 @@ func retrieveBlackTop(file string, cb func([]byte) bool) error {
 	// drop too small images
 	if img.Cols() < cropRect.Max.X || img.Rows() < cropRect.Max.Y {
 		cb(nil)
-		//MoveToFile(file, database.data `/special/`)
+		//MoveToFile(file, `data/unparsed/`)
 		return nil
 	}
 
 	// select region of interest
 	cropped := img.Region(cropRect)
-	thresh := 5
+	thresh := 10
 	// drop images with not black header
 	shouldBeBlack := cropped.ColRange(0, 5)
 	if int(shouldBeBlack.Mean().Val1) > thresh {
-		log.Println("not black")
+		log.Printf("not black with thresh %v\n", int(shouldBeBlack.Mean().Val1))
 		cb(nil)
-		//MoveToFile(file, `../data/special/`)
+		//MoveToFile(file, `data/unparsed/`)
 		return nil
 	}
 
@@ -203,5 +202,6 @@ func retrieveBlackTop(file string, cb func([]byte) bool) error {
 		return err
 	}
 	cb(buf.GetBytes())
+	//MoveToFile(file, `data/unparsed/`)
 	return nil
 }

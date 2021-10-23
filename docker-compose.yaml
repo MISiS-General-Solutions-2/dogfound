@@ -7,3 +7,9 @@ services:
       dockerfile: Dockerfile
     ports:
           - "6000:6000"
+  ocr:
+    build:
+      context: ./ocr_mock
+      dockerfile: Dockerfile
+    ports:
+          - "6001:6001"

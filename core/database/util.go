@@ -9,7 +9,7 @@ import (
 
 //utility to flaten dataset
 func PopulateWithImages(path string) error {
-	reFileName := regexp.MustCompile(`^\d+\.jpg`)
+	reFileName := regexp.MustCompile(`^[^\.].+\.jpg`)
 	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {

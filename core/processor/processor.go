@@ -10,7 +10,6 @@ func ProcessAllImages(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	imgs = imgs[:10]
 
 	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
 	if err != nil {
