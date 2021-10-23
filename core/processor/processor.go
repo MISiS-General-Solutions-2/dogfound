@@ -10,11 +10,13 @@ func ProcessAllImages(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-
-	//for faster test
 	imgs = imgs[:10]
 
 	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
+	if err != nil {
+		return err
+	}
+	timestamps, err := GetTimestampsMock(dir, imgs)
 	if err != nil {
 		return err
 	}
@@ -27,11 +29,14 @@ func ProcessAllImages(cfg *Config) error {
 		return err
 	}
 
-	addrReqs := make([]database.SetAddressRequest, len(imgs))
+	addrReqs := make([]database.CameraInfo, len(imgs))
 	for i := range addrReqs {
 		addrReqs[i].Filename = imgs[i]
 		addrReqs[i].CamID = camIDs[i]
-		addrReqs[i].Address = "addr"
+		addrReqs[i].TimeStamp = timestamps[i]
 	}
-	return database.SetAddress(addrReqs)
+	return database.SetCameraInfo(addrReqs)
+}
+func GetTimestampsMock(dir string, imgs []string) ([]int64, error) {
+	return make([]int64, len(imgs)), nil
 }

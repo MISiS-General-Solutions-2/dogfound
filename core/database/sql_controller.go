@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -25,37 +26,19 @@ const (
 	CamID       = "cam_id"
 	TimeStamp   = "timestamp"
 
-	DataPath = "/opt/pet-track/data/"
+	LatLon = "latlon"
+
+	DataPath       = "/opt/pet-track/data/"
+	registriesPath = DataPath + "registries/"
 )
 
 func Connect() func() {
 	var err error
 	db, err = sql.Open("sqlite3",
-		DataPath+"images.db")
+		DataPath+"pet-track.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS images
-	(
-		filename TEXT NOT NULL PRIMARY KEY,
-		is_animal_there INTEGER,
-		is_it_a_dog INTEGER,
-		is_the_owner_there INTEGER,
-		color INTEGER,
-		tail INTEGER,
-		address TEXT,
-		cam_id TEXT,
-		timestamp INTEGER
-	)
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		db.Close()
-		panic(err)
-	}
-
 	return func() {
 		db.Close()
 	}
@@ -70,28 +53,26 @@ type SetClassesRequest struct {
 	Color       int
 	Tail        int
 }
-type SetAddressRequest struct {
+type CameraInfo struct {
 	Filename string
 
-	Address   string
 	CamID     string
-	TimeStamp int
+	TimeStamp int64
 }
 
-func SetAddress(reqs []SetAddressRequest) error {
+func SetCameraInfo(reqs []CameraInfo) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
 	stmt, err := tx.Prepare(`
-	INSERT INTO images(filename,address,cam_id,timestamp)
-	VALUES(?,?,?,?)
+	INSERT INTO images(filename,cam_id,timestamp)
+		VALUES(?,?,?)
 	ON CONFLICT(filename)
 	DO UPDATE
 	SET
-	address=?,
-	cam_id=?,
-	timestamp=?
+		cam_id=?,
+		timestamp=?
 	WHERE filename = ?
 	`)
 	if err != nil {
@@ -102,7 +83,7 @@ func SetAddress(reqs []SetAddressRequest) error {
 		if !imageExists(rec.Filename) {
 			return fmt.Errorf("image %v does not exist", rec.Filename)
 		}
-		_, err = stmt.Exec(rec.Filename, rec.Address, rec.CamID, rec.TimeStamp, rec.Address, rec.CamID, rec.TimeStamp, rec.Filename)
+		_, err = stmt.Exec(rec.Filename, rec.CamID, rec.TimeStamp, rec.CamID, rec.TimeStamp, rec.Filename)
 		if err != nil {
 			return err
 		}
@@ -117,14 +98,14 @@ func SetClasses(reqs []SetClassesRequest) error {
 	}
 	stmt, err := tx.Prepare(`
 	INSERT INTO images(filename,is_animal_there,is_the_owner_there,color,tail)
-	VALUES(?,?,?,?,?)
+		VALUES(?,?,?,?,?)
 	ON CONFLICT(filename)
 	DO UPDATE
 	SET
-	is_animal_there=?,
-	is_the_owner_there=?,
-	color=?,
-	tail=?
+		is_animal_there=?,
+		is_the_owner_there=?,
+		color=?,
+		tail=?
 	WHERE filename = ?
 	`)
 	if err != nil {
@@ -143,9 +124,19 @@ func SetClasses(reqs []SetClassesRequest) error {
 	return tx.Commit()
 }
 func ValidateRequest(req map[string]interface{}) error {
-	for k := range req {
+	for k, v := range req {
 		switch k {
-		case IsAnimal, IsWithOwner, Color, Tail, Address, CamID, TimeStamp:
+		case Color, Tail, CamID, TimeStamp:
+		case LatLon:
+			if arr, ok := v.([]interface{}); ok && len(arr) == 2 {
+				for i := range arr {
+					if _, ok := arr[i].(float64); !ok {
+						return errors.New("latlon should be array of two floats")
+					}
+				}
+			} else {
+				return errors.New("latlon should be array of two floats")
+			}
 		default:
 			return fmt.Errorf("unexpected field %v", k)
 		}
@@ -157,28 +148,46 @@ type SearchResponse struct {
 	Filename  string
 	Address   string
 	CamID     string
-	TimeStamp int
+	TimeStamp int64
 }
 
 func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	b := strings.Builder{}
-	b.WriteString("SELECT filename,address,cam_id,timestamp FROM images WHERE ")
+	b.WriteString(`SELECT filename,registries.address,images.cam_id,timestamp FROM images LEFT OUTER JOIN registries
+		ON images.cam_id = registries.cam_id WHERE `)
+	first := true
 	for k, v := range req {
-		b.WriteString(k)
-		b.WriteRune('=')
 		switch k {
 		case Filename, Address, CamID:
+			if !first {
+				b.WriteString(" AND ")
+			}
+			b.WriteString(k)
+			b.WriteRune('=')
 			b.WriteRune('"')
 			b.WriteString(v.(string))
 			b.WriteRune('"')
 		case IsAnimal, IsDog, IsWithOwner, Color, Tail:
+			if !first {
+				b.WriteString(" AND ")
+			}
+			b.WriteString(k)
+			b.WriteRune('=')
 			b.WriteString(strconv.Itoa(int(v.(float64))))
+		case TimeStamp:
+			if !first {
+				b.WriteString(" AND ")
+			}
+			b.WriteString("(timestamp=0 OR timestamp>=")
+			b.WriteString(strconv.Itoa(int(v.(float64))))
+			b.WriteRune(')')
+		case LatLon:
+			//used later
 		default:
 			return nil, fmt.Errorf("unexpected field %v", k)
 		}
-		b.WriteString(" AND ")
+		first = false
 	}
-	b.WriteString("address IS NOT NULL AND cam_id IS NOT NULL AND timestamp IS NOT NULL")
 	sqlStmt := b.String()
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
@@ -187,12 +196,18 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	defer rows.Close()
 	var res []SearchResponse
 	for rows.Next() {
-		var sr SearchResponse
+		type SearchResponseSQL struct {
+			Filename  string
+			Address   sql.NullString
+			CamID     sql.NullString
+			TimeStamp sql.NullInt64
+		}
+		var sr SearchResponseSQL
 		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.TimeStamp)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, sr)
+		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64})
 	}
 	err = rows.Err()
 	if err != nil {

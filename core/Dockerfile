@@ -14,7 +14,6 @@ COPY --from=build /app/core /opt/pet-track/
 RUN mkdir -p /opt/pet-track/data/img
 COPY ./data /opt/pet-track/data
 
-# TODO add sqlite3 
 COPY ./include/sqlite3 /usr/bin/sqlite3
 
 CMD ["/opt/pet-track/core"]
