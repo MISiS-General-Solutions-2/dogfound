@@ -13,9 +13,9 @@ func ProcessAllImages(cfg *Config) error {
 		return err
 	}
 
-	if err = GetImageClassInfo(dir, imgs); err != nil {
-		return err
-	}
+	// if err = GetImageClassInfo(dir, imgs); err != nil {
+	// 	return err
+	// }
 	return GetOCRInfo(dir, imgs)
 }
 func GetOCRInfo(dir string, imgs []string) error {

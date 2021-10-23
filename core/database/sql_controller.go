@@ -118,7 +118,7 @@ func ValidateRequest(req map[string]interface{}) error {
 
 func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	b := strings.Builder{}
-	b.WriteString(`SELECT filename,registries.address,images.cam_id,timestamp FROM images LEFT OUTER JOIN registries
+	b.WriteString(`SELECT filename,registries.address,images.cam_id,lat,lon,timestamp FROM images LEFT OUTER JOIN registries
 		ON images.cam_id = registries.cam_id WHERE `)
 	first := true
 	for k, v := range req {
@@ -166,13 +166,14 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 			Address   sql.NullString
 			CamID     sql.NullString
 			TimeStamp sql.NullInt64
+			Lat, Lon  sql.NullFloat64
 		}
 		var sr SearchResponseSQL
-		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.TimeStamp)
+		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.Lat, &sr.Lon, &sr.TimeStamp)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, Visualization{}})
+		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, [2]float64{sr.Lon.Float64, sr.Lat.Float64}, Visualization{}})
 	}
 	err = rows.Err()
 	if err != nil {

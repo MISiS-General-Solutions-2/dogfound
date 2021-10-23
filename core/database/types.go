@@ -30,10 +30,11 @@ type CameraInfo struct {
 	TimeStamp int64  `json:"timestamp"`
 }
 type SearchResponse struct {
-	Filename  string `json:"filename"`
-	Address   string `json:"address"`
-	CamID     string `json:"cam_id"`
-	TimeStamp int64  `json:"timestamp"`
+	Filename  string     `json:"filename"`
+	Address   string     `json:"address"`
+	CamID     string     `json:"cam_id"`
+	TimeStamp int64      `json:"timestamp"`
+	LonLat    [2]float64 `json:"lonlat"`
 
 	Vis Visualization `json:"visulization"`
 }

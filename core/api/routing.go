@@ -11,5 +11,5 @@ func Serve() {
 	api.GET("/image/by-classes", getImagesByFeatures)
 	api.GET("/image/:name", getImage)
 
-	router.Run(":80")
+	router.Run(":6000")
 }
