@@ -3,6 +3,7 @@ package processor
 import (
 	"pet-track/cv"
 	"pet-track/database"
+	"pet-track/http"
 )
 
 func ProcessAllImages(cfg *Config) error {
@@ -11,6 +12,12 @@ func ProcessAllImages(cfg *Config) error {
 		return err
 	}
 
+	if err = GetImageClassInfo(dir, imgs); err != nil {
+		return err
+	}
+	return GetOCRInfo(dir, imgs)
+}
+func GetOCRInfo(dir string, imgs []string) error {
 	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
 	if err != nil {
 		return err
@@ -35,6 +42,14 @@ func ProcessAllImages(cfg *Config) error {
 		addrReqs[i].TimeStamp = timestamps[i]
 	}
 	return database.SetCameraInfo(addrReqs)
+}
+func GetImageClassInfo(dir string, imgs []string) error {
+	res, err := http.Categorize(http.Config{Address: "localhost:6002"}, dir, imgs)
+	if err != nil {
+		return err
+	}
+	_ = res
+	return nil
 }
 func GetTimestampsMock(dir string, imgs []string) ([]int64, error) {
 	return make([]int64, len(imgs)), nil

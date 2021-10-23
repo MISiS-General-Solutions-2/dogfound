@@ -13,3 +13,9 @@ services:
       dockerfile: Dockerfile
     ports:
           - "6001:6001"
+  neural_network:
+    build:
+      context: ./nn_mock
+      dockerfile: Dockerfile
+    ports:
+          - "6002:6002"

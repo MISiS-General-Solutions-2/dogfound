@@ -16,18 +16,6 @@ var (
 )
 
 const (
-	Filename    = "filename"
-	IsAnimal    = "is_animal_there"
-	IsDog       = "is_it_a_dog"
-	IsWithOwner = "is_the_owner_there"
-	Color       = "color"
-	Tail        = "tail"
-	Address     = "address"
-	CamID       = "cam_id"
-	TimeStamp   = "timestamp"
-
-	LatLon = "latlon"
-
 	DataPath       = "/opt/pet-track/data/"
 	registriesPath = DataPath + "registries/"
 )
@@ -42,22 +30,6 @@ func Connect() func() {
 	return func() {
 		db.Close()
 	}
-}
-
-type SetClassesRequest struct {
-	Filename string
-
-	IsAnimal    int
-	IsDog       int
-	IsWithOwner int
-	Color       int
-	Tail        int
-}
-type CameraInfo struct {
-	Filename string
-
-	CamID     string
-	TimeStamp int64
 }
 
 func SetCameraInfo(reqs []CameraInfo) error {
@@ -144,13 +116,6 @@ func ValidateRequest(req map[string]interface{}) error {
 	return nil
 }
 
-type SearchResponse struct {
-	Filename  string
-	Address   string
-	CamID     string
-	TimeStamp int64
-}
-
 func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	b := strings.Builder{}
 	b.WriteString(`SELECT filename,registries.address,images.cam_id,timestamp FROM images LEFT OUTER JOIN registries
@@ -207,7 +172,7 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64})
+		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, Visualization{}})
 	}
 	err = rows.Err()
 	if err != nil {
