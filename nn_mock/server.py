@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
+from pathlib import Path
+
 
 app = FastAPI()
 
@@ -42,4 +44,13 @@ async def categorize(req: Request):
 
 def GetClasses(file: str) -> Response:
     # implement this function
-    return Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0, color=0, tail=0, vis=Visualization(crop=[0, 0, 5, 5], probabilities=file))
+    prob = "no file exists"
+    if fileExists(file):
+        prob = file
+
+    return Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0, color=0, tail=0, vis=Visualization(crop=[0, 0, 5, 5], probabilities=prob))
+
+
+def fileExists(file: str) -> bool:
+    my_file = Path(file)
+    return my_file.is_file()

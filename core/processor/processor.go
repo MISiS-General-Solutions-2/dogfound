@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"pet-track/cv"
 	"pet-track/database"
 	"pet-track/http"
@@ -48,7 +49,9 @@ func GetImageClassInfo(dir string, imgs []string) error {
 	if err != nil {
 		return err
 	}
-	_ = res
+	for i := range res {
+		fmt.Println(res[i].Vis.Probabilities)
+	}
 	return nil
 }
 func GetTimestampsMock(dir string, imgs []string) ([]int64, error) {
