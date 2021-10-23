@@ -7,7 +7,7 @@ type Config struct {
 }
 type CategorizationResponse struct {
 	database.SetClassesRequest `json:",inline"`
-	database.Visualization     `json:",inline"`
+	Vis                        database.Visualization `json:"vis"`
 }
 type ImageRequest struct {
 	Dir    string   `json:"dir"`

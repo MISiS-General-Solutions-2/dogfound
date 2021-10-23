@@ -38,4 +38,5 @@ type SearchResponse struct {
 	Vis Visualization `json:"visulization"`
 }
 type Visualization struct {
+	Probabilities string `json:"probabilities"`
 }

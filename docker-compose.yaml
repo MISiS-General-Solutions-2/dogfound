@@ -6,16 +6,16 @@ services:
       context: ./core
       dockerfile: Dockerfile
     ports:
-          - "6000:6000"
+          - "6000:80"
   ocr:
     build:
       context: ./ocr_mock
       dockerfile: Dockerfile
     ports:
-          - "6001:6001"
+          - "6001:80"
   neural_network:
     build:
       context: ./nn_mock
       dockerfile: Dockerfile
     ports:
-          - "6002:6002"
+          - "6002:80"

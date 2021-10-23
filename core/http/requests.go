@@ -7,12 +7,24 @@ import (
 	"net/http"
 )
 
-func Categorize(cfg Config, dir string, imgs []string) ([]CategorizationResponse, error) {
+var (
+	nnServiceCfg = Config{
+		Address: "neural_network:80",
+	}
+	ocrServiceCfg = Config{
+		Address: "ocr:80",
+	}
+)
+
+func Categorize(dir string, imgs []string) ([]CategorizationResponse, error) {
 	body, err := json.Marshal(ImageRequest{Dir: dir, Images: imgs})
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", cfg.Address+"/api/recognize", bytes.NewReader(body))
+
+	req, err := http.NewRequest("POST", "http://"+nnServiceCfg.Address+"/api/categorize", bytes.NewReader(body))
+
+	fmt.Println(req.URL)
 	if err != nil {
 		return nil, err
 	}

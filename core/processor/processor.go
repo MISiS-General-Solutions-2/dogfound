@@ -44,7 +44,7 @@ func GetOCRInfo(dir string, imgs []string) error {
 	return database.SetCameraInfo(addrReqs)
 }
 func GetImageClassInfo(dir string, imgs []string) error {
-	res, err := http.Categorize(http.Config{Address: "localhost:6002"}, dir, imgs)
+	res, err := http.Categorize(dir, imgs)
 	if err != nil {
 		return err
 	}
