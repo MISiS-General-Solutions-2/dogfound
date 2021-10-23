@@ -4,7 +4,7 @@ WORKDIR /app/
 
 COPY . ./
 
-RUN mkdir app;cd include/gocr-0.52/src; make lib.a; mv libPgm2asc.a /app/libs/
+RUN mkdir libs;cd include/gocr-0.52/src; make lib.a; mv libPgm2asc.a /app/libs/
 
 RUN go build -o core .
 
