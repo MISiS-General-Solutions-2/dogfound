@@ -12,7 +12,7 @@ FROM vlasovanton/gocv:latest
 COPY --from=build /app/core /opt/dogfound/
 
 RUN mkdir -p /opt/dogfound/data/img
-COPY ./data /opt/dogfound/data
+COPY ./data/img /opt/dogfound/data/img
 
 COPY ./include/sqlite3 /usr/bin/sqlite3
 

@@ -1,6 +1,7 @@
 core/data/**
 !core/data/apxi8
-!core/data/pet-track.db
+!core/data/dogfound.db
+core/my_data/**
 
 venv/**
 __*

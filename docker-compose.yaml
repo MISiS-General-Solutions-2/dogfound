@@ -6,9 +6,9 @@ services:
       context: ./core
       dockerfile: Dockerfile
     ports:
-          - "6000:80"
+          - "5000:5000"
     volumes:
-          - data:/opt/pet-track/data
+          - data:/opt/dogfound/data
 
   ocr:
     build:
@@ -17,7 +17,7 @@ services:
     ports:
           - "6001:80"
     volumes:
-          -  data:/opt/pet-track/data
+          -  data:/opt/dogfound/data
   neural_network:
     build:
       context: ./nn_mock
@@ -25,6 +25,6 @@ services:
     ports:
           - "6002:80"
     volumes:
-          - data:/opt/pet-track/data
+          - data:/opt/dogfound/data
 volumes:
   data:

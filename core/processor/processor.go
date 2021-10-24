@@ -45,6 +45,9 @@ func ProcessNewImages() (err error) {
 	}
 }
 func GetOCRInfo(dir string, imgs []string) error {
+	if len(imgs) == 0 {
+		return nil
+	}
 	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
 	if err != nil {
 		return err

@@ -18,6 +18,9 @@ var (
 )
 
 func Categorize(dir string, imgs []string) ([]CategorizationResponse, error) {
+	if len(imgs) == 0 {
+		return nil, nil
+	}
 	body, err := json.Marshal(ImageRequest{Dir: dir, Images: imgs})
 	if err != nil {
 		return nil, err
