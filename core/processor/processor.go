@@ -5,6 +5,7 @@ import (
 	"dogfound/database"
 	"dogfound/http"
 	"log"
+	"math"
 	"time"
 )
 
@@ -39,6 +40,11 @@ func ProcessNewImages() (err error) {
 		time.Sleep(5 * time.Second)
 	}
 }
+func getPartOfSlice(l, i, numpatrs int) (int, int) {
+	start := (l / numpatrs) * i
+	end := int(math.Min(float64(l), float64(l/numpatrs*(i+1))))
+	return start, end
+}
 func GetOCRTextInfo(dir string, imgs []string) error {
 	if len(imgs) == 0 {
 		return nil
@@ -49,12 +55,20 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 	if err != nil {
 		return err
 	}
+	wg.Wait()
 
 	addrReqs := make([]database.CameraInfo, len(imgs))
-	for i := range camIDs {
+	i := 0
+	for {
+		if len(camCh) == 0 {
+			break
+		}
+		camIDs := <-camCh
+		timestamps := <-timestampsCh
 		addrReqs[i].Filename = imgs[i]
 		addrReqs[i].CamID = camIDs[i]
 		addrReqs[i].TimeStamp = timestamps[i]
+		i += 1
 	}
 
 	return database.SetCameraInfo(addrReqs)
