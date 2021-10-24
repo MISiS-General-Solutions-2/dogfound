@@ -98,6 +98,7 @@ def run_analytics(file_path, response):
                       int(best_dog['ycenter']+best_dog['height']//2),
                       int(best_dog['xcenter']-best_dog['width']//2),
                       int(best_dog['xcenter']+best_dog['width']//2))
+            response.vis.crop = [coords[0], coords[2], coords[1], coords[3]]
             dog_crop = cv_image[coords[0]:coords[1], coords[2]:coords[3]]
             classes = classifier_model(tr_pipe(dog_crop).unsqueeze(0).to(device))
             color_cl = classes['color'].argmax().cpu().detach().item() + 1
