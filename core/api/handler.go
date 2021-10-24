@@ -1,23 +1,28 @@
 package api
 
 import (
+	"dogfound/database"
 	"net/http"
-	"pet-track/database"
 
 	"github.com/gin-gonic/gin"
 )
 
 func getImage(ctx *gin.Context) {
 	name := ctx.Param("name")
-	ctx.File(database.GetFilePath(name))
+	ctx.File(database.GetImagePath(name))
 }
+
 func getImagesByFeatures(ctx *gin.Context) {
-	var features map[string]interface{}
-	if err := ctx.BindJSON(&features); err != nil {
+	var req map[string]interface{}
+	if err := ctx.BindJSON(&req); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	imgs, err := database.GetImagesByFeatures(features)
+	if err := database.ValidateRequest(req); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	imgs, err := database.GetImagesByClasses(req)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}

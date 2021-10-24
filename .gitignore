@@ -1,15 +1,20 @@
 core/data/**
 !core/data/apxi8
+!core/data/dogfound.db
+core/my_data/**
 
-gocv
+venv/**
+__*
 
 *.o
 *.a
 *.log
 .vscode
+.zip
 
 # Classification
 classificator/data
-.idea/
-__pycache__/
 weights/
+
+
+

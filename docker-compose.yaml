@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  core:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    ports:
+          - "5000:5000"
+    volumes:
+          - data:/opt/dogfound/data
+
+  ocr:
+    build:
+      context: ./ocr_mock
+      dockerfile: Dockerfile
+    ports:
+          - "6001:80"
+    volumes:
+          -  data:/opt/dogfound/data
+  neural_network:
+    build:
+      context: ./nn_mock
+      dockerfile: Dockerfile
+    ports:
+          - "6002:80"
+    volumes:
+          - data:/opt/dogfound/data
+volumes:
+  data:

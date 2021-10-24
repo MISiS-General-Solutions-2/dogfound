@@ -4,17 +4,16 @@ WORKDIR /app/
 
 COPY . ./
 
-RUN cd gocr-0.52/src; make lib.a;
-RUN cd /app/; mkdir libs;mv /app/gocr-0.52/src/libPgm2asc.a ./libs/
+RUN mkdir libs;cd include/gocr-0.52/src; make lib.a; mv libPgm2asc.a /app/libs/
 
 RUN go build -o core .
 
 FROM vlasovanton/gocv:latest
-COPY --from=build /app/core /opt/pet-track/
+COPY --from=build /app/core /opt/dogfound/
 
-RUN mkdir -p /opt/pet-track/data/img
-COPY ./data /opt/pet-track/data
+RUN mkdir -p /opt/dogfound/data/img
+COPY ./data /opt/dogfound/data
 
-# TODO add sqlite3 
+COPY ./include/sqlite3 /usr/bin/sqlite3
 
-CMD ["/opt/pet-track/core"]
+CMD ["/opt/dogfound/core"]
