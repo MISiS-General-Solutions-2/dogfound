@@ -26,6 +26,3 @@ def eval_on_image(file_path: str):
 def run_analytics(result_df, response):
 
     return response
-
-
-print(eval_on_image("/opt/dogfound/data/img/B100.jpg"))
