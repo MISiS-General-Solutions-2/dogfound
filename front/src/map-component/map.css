@@ -1,0 +1,34 @@
+#map {
+    min-width: 904.5px;
+    min-height: 100%;
+    flex-grow: 1;
+    position: relative;
+}
+
+.mapboxgl-canvas {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.mapboxgl-ctrl-attrib-inner,
+.mapboxgl-ctrl-logo {
+    display: none !important;
+}
+
+.markerDiv {
+    width: 20px;
+    height: 20px;
+    background-color: #bb0000;
+    border-radius: 100%;
+    box-shadow: 0px 1px 1px 1px #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+}
+
+.imgMarker {
+    background-size: 50px;
+    width: 100px;
+    position: absolute;
+    top: 100%;
+}
