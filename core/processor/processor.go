@@ -4,17 +4,13 @@ import (
 	"dogfound/cv"
 	"dogfound/database"
 	"dogfound/http"
-	"fmt"
+	"log"
+	"math"
 	"time"
 )
 
 // blocks
 func ProcessNewImages() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("recovered from %v", r)
-		}
-	}()
 	for {
 		dir, imgs, err := database.GetImages()
 		if err != nil {
@@ -36,53 +32,70 @@ func ProcessNewImages() (err error) {
 		}
 
 		if err = GetImageClassInfo(dir, imgs); err != nil {
-			return err
+			log.Println(err)
 		}
-		if err = GetOCRInfo(dir, imgs); err != nil {
+		if err = GetOCRTextInfo(dir, imgs); err != nil {
 			return err
 		}
 		time.Sleep(5 * time.Second)
 	}
 }
-func GetOCRInfo(dir string, imgs []string) error {
+func getPartOfSlice(l, i, numpatrs int) (int, int) {
+	start := (l / numpatrs) * i
+	end := int(math.Min(float64(l), float64(l/numpatrs*(i+1))))
+	return start, end
+}
+func GetOCRTextInfo(dir string, imgs []string) error {
 	if len(imgs) == 0 {
 		return nil
 	}
-	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
-	if err != nil {
-		return err
-	}
-	timestamps, err := GetTimestampsMock(dir, imgs)
-	if err != nil {
-		return err
-	}
+	imgs = imgs[:10]
 
-	classReqs := make([]database.SetClassesRequest, len(imgs))
-	for i := range classReqs {
-		classReqs[i].Filename = imgs[i]
-	}
-	if err := database.SetClasses(classReqs); err != nil {
+	camIDs, timestamps, err := cv.ParseImages(dir, imgs)
+	if err != nil {
 		return err
 	}
+	wg.Wait()
 
 	addrReqs := make([]database.CameraInfo, len(imgs))
-	for i := range addrReqs {
+	i := 0
+	for {
+		if len(camCh) == 0 {
+			break
+		}
+		camIDs := <-camCh
+		timestamps := <-timestampsCh
 		addrReqs[i].Filename = imgs[i]
 		addrReqs[i].CamID = camIDs[i]
 		addrReqs[i].TimeStamp = timestamps[i]
+		i += 1
 	}
+
 	return database.SetCameraInfo(addrReqs)
 }
 func GetImageClassInfo(dir string, imgs []string) error {
+	i := 10
+	for {
+		if i >= len(imgs) {
+			break
+		}
+		res, err := http.Categorize(dir, imgs[:i])
+		if err != nil {
+			return err
+		}
+		if err = database.SetClasses(res); err != nil {
+			return err
+		}
+
+		imgs = imgs[i:]
+		i += 10
+	}
 	res, err := http.Categorize(dir, imgs)
 	if err != nil {
 		return err
 	}
-	for i := range res {
-		fmt.Println(res[i].Vis.Probabilities)
+	if err = database.SetClasses(res); err != nil {
+		return err
 	}
 	return nil
-}
-func GetTimestampsMock(dir string, imgs []string) ([]int64, error) {
-	return make([]int64, len(imgs)), nil
 }

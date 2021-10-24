@@ -2,10 +2,10 @@ package http
 
 import (
 	"bytes"
+	"dogfound/database"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	}
 )
 
-func Categorize(dir string, imgs []string) ([]CategorizationResponse, error) {
+func Categorize(dir string, imgs []string) ([]database.SetClassesRequest, error) {
 	if len(imgs) == 0 {
 		return nil, nil
 	}
@@ -36,13 +36,7 @@ func Categorize(dir string, imgs []string) ([]CategorizationResponse, error) {
 		respBody []byte
 		code     int
 	)
-	for i := 0; i < 5; i++ {
-		respBody, code, err = RecieveResponseJSON(http.DefaultClient.Do(req))
-		if err == nil && code == http.StatusOK {
-			break
-		}
-		time.Sleep(5 * time.Second)
-	}
+	respBody, code, err = RecieveResponseJSON(http.DefaultClient.Do(req))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +44,7 @@ func Categorize(dir string, imgs []string) ([]CategorizationResponse, error) {
 		return nil, fmt.Errorf("unexpected response code %v with body %s", code, respBody)
 	}
 
-	var res []CategorizationResponse
+	var res []database.SetClassesRequest
 	if err = json.Unmarshal(respBody, &res); err != nil {
 		return nil, err
 	}
