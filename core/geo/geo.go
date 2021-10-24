@@ -1,15 +1,31 @@
 package geo
 
-// type SightingInfo struct {
-// 	database.SearchResponse
+import (
+	"math"
+)
 
-// }
+const (
+	cosineMoscow = 0.562576257
+)
 
-// type SightingsIndex struct {
-// 	Lats []float64
-// 	Lons []float64
-// }
+type SightingInfo struct {
+	Lat, Lon  float64
+	Timestamp int64
+	Filename  string
+}
 
-// func CreateSightingsIndex(sightings []database.CameraInfo) error {
+func GetSightingRelationship(start SightingInfo, candidates []SightingInfo) {
 
-// }
+}
+
+func MetersToLatApprox(dist float64) float64 {
+	return dist / 111111
+}
+func MetersToLonApprox(dist float64) float64 {
+	return dist / (111111 * cosineMoscow)
+}
+func EuclidianDistanceApprox(aLat, bLat, aLng, bLng float64) float64 {
+	dy := 111111 * (aLat - bLat)
+	dx := 111111 * (aLng - bLng) * cosineMoscow
+	return math.Sqrt(dx*dx + dy*dy)
+}

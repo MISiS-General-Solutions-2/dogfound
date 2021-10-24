@@ -5,18 +5,44 @@ import (
 	"pet-track/cv"
 	"pet-track/database"
 	"pet-track/http"
+	"time"
 )
 
-func ProcessAllImages(cfg *Config) error {
-	dir, imgs, err := database.GetImages()
-	if err != nil {
-		return err
-	}
+// blocks
+func ProcessNewImages() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("recovered from %v", r)
+		}
+	}()
+	for {
+		dir, imgs, err := database.GetImages()
+		if err != nil {
+			return err
+		}
+		count, err := database.GetImageCount()
+		if err != nil {
+			return err
+		}
+		if count != len(dir) {
+			if err = database.DropRecordsForDeletedImages(imgs); err != nil {
+				return err
+			}
 
-	// if err = GetImageClassInfo(dir, imgs); err != nil {
-	// 	return err
-	// }
-	return GetOCRInfo(dir, imgs)
+			imgs, err = database.GetNewImages(imgs)
+			if err != nil {
+				return err
+			}
+		}
+
+		// if err = GetImageClassInfo(dir, imgs); err != nil {
+		// 	return err
+		// }
+		if err = GetOCRInfo(dir, imgs); err != nil {
+			return err
+		}
+		time.Sleep(5 * time.Second)
+	}
 }
 func GetOCRInfo(dir string, imgs []string) error {
 	camIDs, err := cv.GetImagesCamIDs(dir, imgs)

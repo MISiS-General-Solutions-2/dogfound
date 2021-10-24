@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -31,7 +30,81 @@ func Connect() func() {
 		db.Close()
 	}
 }
+func GetImageCount() (int, error) {
+	q := "SELECT COUNT(filename) FROM images"
+	resp, err := db.Query(q)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Close()
+	var count sql.NullInt64
+	resp.Scan(&count)
+	return int(count.Int64), nil
+}
+func GetNewImages(images []string) ([]string, error) {
 
+	q := "CREATE TEMP TABLE files(filename TEXT NOT NULL PRIMARY KEY);"
+	_, err := db.Exec(q)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		q := "DROP TABLE files;"
+		_, err := db.Exec(q)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	stmt, err := tx.Prepare(`INSERT INTO files VALUES(?)`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	for _, img := range images {
+		_, err = stmt.Exec(img)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	q = "SELECT files.filename FROM files WHERE files.filename NOT IN (SELECT images.filename FROM images);"
+	rows, err := db.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	var result []string
+	defer rows.Close()
+	for rows.Next() {
+		var img string
+		err = rows.Scan(&img)
+		if err != nil {
+			log.Fatal(err)
+		}
+		result = append(result, img)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return result, err
+}
+func DropRecordsForDeletedImages(images []string) error {
+	list := strings.Join(images, `","`)
+	stmt := fmt.Sprintf(`DELETE FROM images WHERE filename not in ("%v")`, list)
+	_, err := db.Exec(stmt)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func SetCameraInfo(reqs []CameraInfo) error {
 	tx, err := db.Begin()
 	if err != nil {
@@ -96,19 +169,9 @@ func SetClasses(reqs []SetClassesRequest) error {
 	return tx.Commit()
 }
 func ValidateRequest(req map[string]interface{}) error {
-	for k, v := range req {
+	for k := range req {
 		switch k {
 		case Color, Tail, CamID, TimeStamp:
-		case LatLon:
-			if arr, ok := v.([]interface{}); ok && len(arr) == 2 {
-				for i := range arr {
-					if _, ok := arr[i].(float64); !ok {
-						return errors.New("latlon should be array of two floats")
-					}
-				}
-			} else {
-				return errors.New("latlon should be array of two floats")
-			}
 		default:
 			return fmt.Errorf("unexpected field %v", k)
 		}
@@ -146,8 +209,6 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 			b.WriteString("(timestamp=0 OR timestamp>=")
 			b.WriteString(strconv.Itoa(int(v.(float64))))
 			b.WriteRune(')')
-		case LatLon:
-			//used later
 		default:
 			return nil, fmt.Errorf("unexpected field %v", k)
 		}
