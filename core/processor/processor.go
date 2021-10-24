@@ -1,10 +1,10 @@
 package processor
 
 import (
+	"dogfound/cv"
+	"dogfound/database"
+	"dogfound/http"
 	"fmt"
-	"pet-track/cv"
-	"pet-track/database"
-	"pet-track/http"
 	"time"
 )
 
@@ -35,9 +35,9 @@ func ProcessNewImages() (err error) {
 			}
 		}
 
-		// if err = GetImageClassInfo(dir, imgs); err != nil {
-		// 	return err
-		// }
+		if err = GetImageClassInfo(dir, imgs); err != nil {
+			return err
+		}
 		if err = GetOCRInfo(dir, imgs); err != nil {
 			return err
 		}

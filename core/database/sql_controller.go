@@ -15,14 +15,14 @@ var (
 )
 
 const (
-	DataPath       = "/opt/pet-track/data/"
+	DataPath       = "/opt/dogfound/data/"
 	registriesPath = DataPath + "registries/"
 )
 
 func Connect() func() {
 	var err error
 	db, err = sql.Open("sqlite3",
-		DataPath+"pet-track.db")
+		DataPath+"dogfound.db")
 	if err != nil {
 		log.Fatal(err)
 	}

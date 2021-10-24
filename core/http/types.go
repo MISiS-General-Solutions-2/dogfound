@@ -1,6 +1,6 @@
 package http
 
-import "pet-track/database"
+import "dogfound/database"
 
 type Config struct {
 	Address string

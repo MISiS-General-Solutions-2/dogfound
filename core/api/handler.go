@@ -1,8 +1,8 @@
 package api
 
 import (
+	"dogfound/database"
 	"net/http"
-	"pet-track/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +11,15 @@ func getImage(ctx *gin.Context) {
 	name := ctx.Param("name")
 	ctx.File(database.GetImagePath(name))
 }
+
+// getImagesByFeatures godoc
+// @Summary getImagesByFeatures
+// @Description getImagesByFeatures
+// @Accept  json
+// @Produce  json
+// @Param q query string false "name search by q"
+// @Header 200 {string} Token "qwerty"
+// @Router /api/image/by-classes [post]
 func getImagesByFeatures(ctx *gin.Context) {
 	var req map[string]interface{}
 	if err := ctx.BindJSON(&req); err != nil {
