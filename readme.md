@@ -13,6 +13,7 @@ docker cp ./core/my_data/img dogfound-core-1:/opt/dogfound/data/
 Необходим установленный Node.js
 
 Из папки front
+npm install yarn -
 yarn start
 
 Веб-страница сервиса доступна на порте 1022. На локальной машине доступ можно получить по адресу http://localhost:1022/
