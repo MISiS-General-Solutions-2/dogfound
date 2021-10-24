@@ -4,7 +4,7 @@ import (
 	"dogfound/cv"
 	"dogfound/database"
 	"dogfound/http"
-	"fmt"
+	"log"
 	"time"
 )
 
@@ -30,9 +30,9 @@ func ProcessNewImages() (err error) {
 			}
 		}
 
-		// if err = GetImageClassInfo(dir, imgs); err != nil {
-		// 	return err
-		// }
+		if err = GetImageClassInfo(dir, imgs); err != nil {
+			log.Println(err)
+		}
 		if err = GetOCRTextInfo(dir, imgs); err != nil {
 			return err
 		}
@@ -43,40 +43,10 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 	if len(imgs) == 0 {
 		return nil
 	}
-
-	// numworkers := runtime.GOMAXPROCS(0) - 2
-	// wg := sync.WaitGroup{}
-	// camCh := make(chan []string, numworkers)
-	// timestampsCh := make(chan []int64, numworkers)
-	// for i := 0; i < numworkers; i++ {
-	// 	wg.Add(1)
-	// 	var err error
-	// 	go func() {
-	// 		defer wg.Done()
-	// 		var (
-	// 			camIDs     []string
-	// 			timestamps []int64
-	// 		)
-	// 		camIDs, timestamps, err = cv.ParseImages(dir, imgs)
-	// 		if err != nil {
-	// 			return
-	// 		}
-	// 		camCh <- camIDs
-	// 		timestampsCh <- timestamps
-	// 	}()
-	// }
-	// wg.Wait()
+	imgs = imgs[:10]
 
 	camIDs, timestamps, err := cv.ParseImages(dir, imgs)
 	if err != nil {
-		return err
-	}
-
-	classReqs := make([]database.SetClassesRequest, len(imgs))
-	for i := range classReqs {
-		classReqs[i].Filename = imgs[i]
-	}
-	if err := database.SetClasses(classReqs); err != nil {
 		return err
 	}
 
@@ -86,28 +56,32 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 		addrReqs[i].CamID = camIDs[i]
 		addrReqs[i].TimeStamp = timestamps[i]
 	}
-	// i := 0
-	// for {
-	// 	if len(camCh) == 0 {
-	// 		break
-	// 	}
-	// 	camIDs := <-camCh
-	// 	timestamps := <-timestampsCh
-	// 	addrReqs[i].Filename = imgs[i]
-	// 	addrReqs[i].CamID = camIDs[i]
-	// 	addrReqs[i].TimeStamp = timestamps[i]
-	// 	i += 1
-	// }
 
 	return database.SetCameraInfo(addrReqs)
 }
 func GetImageClassInfo(dir string, imgs []string) error {
+	i := 10
+	for {
+		if i >= len(imgs) {
+			break
+		}
+		res, err := http.Categorize(dir, imgs[:i])
+		if err != nil {
+			return err
+		}
+		if err = database.SetClasses(res); err != nil {
+			return err
+		}
+
+		imgs = imgs[i:]
+		i += 10
+	}
 	res, err := http.Categorize(dir, imgs)
 	if err != nil {
 		return err
 	}
-	for i := range res {
-		fmt.Println(res[i].Vis.Probabilities)
+	if err = database.SetClasses(res); err != nil {
+		return err
 	}
 	return nil
 }

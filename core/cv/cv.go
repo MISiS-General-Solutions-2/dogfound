@@ -1,7 +1,6 @@
 package cv
 
 import (
-	"fmt"
 	"image"
 	"log"
 
@@ -24,6 +23,8 @@ func ParseImages(directory string, imgs []string) ([]string, []int64, error) {
 		return s != "", nil
 	}
 	timestampCb := func(img []byte) (bool, error) {
+		timestamps = append(timestamps, 0)
+		return false, nil
 		if len(img) == 0 {
 			timestamps = append(timestamps, 0)
 			return false, nil
@@ -38,9 +39,6 @@ func ParseImages(directory string, imgs []string) ([]string, []int64, error) {
 	for _, img := range imgs {
 		if err := retrieveBlackTop(directory+img, camIDCb, timestampCb); err != nil {
 			return nil, nil, err
-		}
-		if len(camIDs) != len(timestamps) {
-			fmt.Println(len(camIDs))
 		}
 	}
 	return camIDs, timestamps, nil

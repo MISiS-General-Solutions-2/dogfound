@@ -31,7 +31,7 @@ func Connect() func() {
 	}
 }
 func GetImageCount() (int, error) {
-	q := "SELECT COUNT(filename) FROM images"
+	q := "SELECT COUNT(color) FROM images WHERE color!=NULL"
 	resp, err := db.Query(q)
 	if err != nil {
 		return 0, err
