@@ -11,3 +11,10 @@ __*
 *.log
 .vscode
 .zip
+
+# Classification
+classificator/data
+weights/
+
+
+
