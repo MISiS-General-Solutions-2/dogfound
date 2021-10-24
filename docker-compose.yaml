@@ -26,5 +26,7 @@ services:
           - "6002:80"
     volumes:
           - data:/opt/dogfound/data
+
 volumes:
   data:
+  

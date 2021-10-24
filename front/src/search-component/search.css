@@ -1,0 +1,176 @@
+search-component {
+    display: flex;
+    flex-direction: column;
+    min-width: 600px;
+    padding: 30px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+search-component p {
+    margin: unset;
+}
+
+search-component p:nth-child(1) {
+    font-weight: 900;
+    font-size: 50px;
+    line-height: 50px;
+    color: #54A0FF;
+    margin-bottom: 40px;
+}
+
+search-component p:nth-child(2) {
+    margin-bottom: 25px;
+}
+
+search-component p:nth-child(4) {
+    margin-bottom: 25px;
+}
+
+.css-b62m3t-container {
+    margin-bottom: 40px;
+}
+
+.option {
+    font-weight: 800;
+    font-size: 25px;
+    line-height: 25px;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.error {
+    color: #bb0000;
+    display: flex;
+    align-items: flex-end;
+    line-height: 30px;
+    font-weight: 900;
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 18px;
+}
+
+.css-1pahdxg-control {
+    height: 50px !important;
+    border-radius: 35px !important;
+    padding-left: 10px;
+}
+
+.css-qc6sy-singleValue {
+    color: #0984E3 !important;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.css-1s2u09g-control {
+    border-color: #F7F7F7 !important;
+    height: 50px !important;
+    background: #F7F7F7 !important;
+    border-radius: 35px !important;
+    color: #0984E3;
+    padding-left: 10px;
+}
+
+.css-14el2xx-placeholder {
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.css-1s2u09g-control:active {
+    height: 50px !important;
+}
+
+search-component button {
+    width: 100px;
+    height: 50px;
+}
+
+.react-date-picker__wrapper {
+    border: unset;
+    background: #F7F7F7;
+    border-radius: 35px;
+    justify-content: center;
+    display: flex;
+    padding: 0 20px;
+    height: 50px;
+    position: relative;
+}
+
+.react-date-picker__clear-button,
+.react-date-picker__calendar-button {
+    width: 30px;
+    position: absolute;
+}
+
+.react-date-picker__calendar {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.react-date-picker__clear-button {
+    right: 20px;
+}
+
+.react-date-picker__inputGroup__input:invalid {
+    background: unset !important;
+}
+
+.react-calendar {
+    width: 100%;
+    border: unset;
+    background: #F7F7F7;
+    border-radius: 20px;
+    padding-bottom: 15px;
+}
+
+.react-date-picker__calendar-button {
+    display: none;
+}
+
+.react-date-picker__inputGroup {
+    display: flex;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 25px;
+    color: #54A0FF;
+}
+
+.react-date-picker__inputGroup input {
+    color: #54A0FF;
+    border: unset;
+    outline: unset;
+}
+
+.react-date-picker--enabled {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="text"]:focus {
+    border: 2px solid #862d59;
+    outline: unset;
+}
+
+.react-date-picker {
+    margin-bottom: 40px;
+}
+
+.react-calendar__tile {
+    color: unset !important;
+    text-align: center !important;
+}
+
+search-component .SendButton {
+    align-self: center;
+    background: #54A0FF;
+    border-radius: 75px;
+    width: 100%;
+    height: 65px;
+    color: #FFFFFF;
+    border: unset;
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 25px;
+    margin-top: 20px;
+}
