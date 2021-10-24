@@ -1,30 +1,29 @@
 class CFG:
     # Data path
-    TRAIN_PATH = "./data/train"
-    VAL_PATH = "./data/val"
+    DATA_PATH = "./data/detect"
+    PATH_CSV = "./data/all.csv"
     # Logging
     LOG_DIR = "./logs"
     OUTPUT_DIR = "resnet34_baseline"
+    TEST_PATH = ""
 
     # Model setup
-    # chk = "./models/resnet34_best.pt"
-    chk = ""
     model_name = "resnet34"
     pretrained = True
-    freeze = True
+    freeze = False
 
     # Main config
     GPU_ID = 0
     seed = 42
-    target_size = 6
+    target_size = 5
 
     # Train configs
-    epochs = 150
+    epochs = 50
     early_stopping = 10
     batch_size = 16
     size = 224
-    MEAN = [0.485, 0.456, 0.406]  # ImageNet values
-    STD = [0.229, 0.224, 0.225]  # ImageNet values
+    mean = [0.485, 0.456, 0.406]  # ImageNet values
+    std = [0.229, 0.224, 0.225]  # ImageNet values
     num_workers = 8
     print_freq = 5
 

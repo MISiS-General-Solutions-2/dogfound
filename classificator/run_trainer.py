@@ -2,37 +2,23 @@ import argparse
 import os
 import time
 
+import pandas as pd
 import torch
-import torch.nn as nn
-from config import CFG
-from model import get_model, save_model
+from sklearn.model_selection import train_test_split
 from torch.optim import Adam
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torch_lr_finder import LRFinder
+
+from check_paths import check_paths
+from config import CFG
+from dataset import TrainValDataset
+from model import MultiOutputModel, save_model
 from train_val import train_fn, valid_fn
-from utils.data_processing import train_val_dataloaders
-from utils.utils import init_logger, save_batch, seed_torch
+from transforms import get_transforms
+from utils.utils import init_logger, seed_torch
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Define whether to save train batch figs or find optimal learning rate"
-    )
-    parser.add_argument(
-        "--save_batch_fig",
-        action="store_true",
-        help="Whether to save a sample of a batch or not",
-    )
-    parser.add_argument(
-        "--find_lr",
-        action="store_true",
-        help="Whether to find optimal learning rate or not",
-    )
-
-    args = parser.parse_args()
-    save_single_batch = args.save_batch_fig
-    find_lr = args.find_lr
-
     # Path to log
     logger_path = os.path.join(CFG.LOG_DIR, CFG.OUTPUT_DIR)
 
@@ -49,15 +35,42 @@ def main():
     # Set seed
     seed_torch(seed=CFG.seed)
 
+    LOGGER.info("Reading data...")
+    train_df = pd.read_csv(CFG.PATH_CSV)
+    mask = train_df["image"].apply(check_paths)
+
+    train_df = train_df[mask]
+
+    train_df["color"] = train_df["color"].apply(lambda x: x - 1)
+    train_df["tail"] = train_df["tail"].apply(lambda x: x - 1)
+
+    print(train_df.head())
+    print(train_df.tail())
+
     # Classes
-    CLASS_NAMES = [
-        "colorful_long",
-        "colorful_short",
-        "dark_long",
-        "dark_short",
-        "light_long",
-        "light_short",
+    COLORS = [
+        "dark",
+        "light",
+        "colorful",
     ]
+
+    TAIL = ["short", "long"]
+
+    LOGGER.info("Splitting data for training and validation...")
+    X_train, X_val, y_train, y_val = train_test_split(
+        train_df["image"],
+        train_df[["color", "tail"]],
+        test_size=0.2,
+        random_state=CFG.seed,
+        shuffle=True,
+    )
+
+    train_fold = pd.concat([X_train, y_train], axis=1)
+    LOGGER.info("train shape: ")
+    LOGGER.info(train_fold.shape)
+    valid_fold = pd.concat([X_val, y_val], axis=1)
+    LOGGER.info("valid shape: ")
+    LOGGER.info(valid_fold.shape)
 
     # ====================================================
     # Form dataloaders
@@ -65,24 +78,34 @@ def main():
 
     device = torch.device(f"cuda:{CFG.GPU_ID}")
 
-    dataloaders = train_val_dataloaders(CFG)
+    train_dataset = TrainValDataset(
+        train_fold, transform=get_transforms(cfg=CFG, data="train")
+    )
+    valid_dataset = TrainValDataset(
+        valid_fold, transform=get_transforms(cfg=CFG, data="valid")
+    )
 
-    train_loader = dataloaders["train"]
-    val_loader = dataloaders["val"]
-
-    # Show batch to see the effect of augmentations
-    if save_single_batch:
-        LOGGER.info("Creating dir to save samples of a batch...")
-        path_to_figs = os.path.join(logger_path, "batch_figs")
-        os.makedirs(path_to_figs)
-        LOGGER.info("Saving figures of a single batch...")
-        save_batch(train_loader, CLASS_NAMES, path_to_figs, CFG)
-        LOGGER.info("Figures have been saved!")
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=CFG.batch_size,
+        shuffle=True,
+        num_workers=CFG.num_workers,
+        pin_memory=True,
+        drop_last=True,
+    )
+    val_loader = DataLoader(
+        valid_dataset,
+        batch_size=CFG.batch_size,
+        shuffle=False,
+        num_workers=CFG.num_workers,
+        pin_memory=True,
+        drop_last=False,
+    )
 
     # ====================================================
     # model & optimizer
     # ====================================================
-    model = get_model(CFG)
+    model = MultiOutputModel()
     model.to(device)
 
     if CFG.freeze:
@@ -98,72 +121,43 @@ def main():
 
     optimizer = Adam(model.parameters(), lr=CFG.lr, weight_decay=CFG.weight_decay)
 
-    """
-    scheduler = torch.optim.lr_scheduler.CyclicLR(
-        optimizer,
-        base_lr=CFG.min_lr,
-        max_lr=CFG.lr,
-        mode="triangular2",
-        step_size_up=2652,
-    )
-    """
-
-    scheduler = None
-
     # ====================================================
     # loop
-    # ====================================================
-    criterion = nn.CrossEntropyLoss()
-    LOGGER.info("Select CrossEntropyLoss criterion")
-
-    if find_lr:
-        print("Finding oprimal learning rate...")
-        # Add this line before running `LRFinder`
-        lr_finder = LRFinder(model, optimizer, criterion, device="cuda")
-        lr_finder.range_test(train_loader, end_lr=100, num_iter=100)
-        lr_finder.plot()  # to inspect the loss-learning rate graph
-        lr_finder.reset()  # to reset the model and optimizer to their initial state
-        print("Optimal learning rate has been found!")
-
-    best_epoch = 0
     best_acc_score = 0.0
-    best_f1_score = 0.0
-
-    count_bad_epochs = 0  # Count epochs that don't improve the score
 
     for epoch in range(CFG.epochs):
         start_time = time.time()
 
-        if epoch >= 50:
-            for name, child in model.named_children():
-                for param in child.parameters():
-                    param.requires_grad = True
-
         # train
-        avg_train_loss, train_acc = train_fn(
+        train_dict = train_fn(
             train_loader,
             model,
-            criterion,
             optimizer,
             epoch,
             device,
-            scheduler=scheduler,
         )
 
+        avg_train_loss = train_dict["train_loss"]
+        train_color_acc = train_dict["train_color_acc"]
+        train_tail_acc = train_dict["train_tail_acc"]
+
         # eval
-        avg_val_loss, val_acc_score, val_f1_score = valid_fn(
-            val_loader, model, criterion, device
-        )
+        val_dict = valid_fn(val_loader, model, device)
+
+        avg_val_loss = val_dict["val_loss"]
+        val_color_acc = val_dict["val_color_acc"]
+        val_tail_acc = val_dict["val_tail_acc"]
 
         cur_lr = optimizer.param_groups[0]["lr"]
         LOGGER.info(f"Current learning rate: {cur_lr}")
 
         tb.add_scalar("Learning rate", cur_lr, epoch + 1)
         tb.add_scalar("Train Loss", avg_train_loss, epoch + 1)
-        tb.add_scalar("Train accuracy", train_acc, epoch + 1)
+        tb.add_scalar("Train color accuracy", train_color_acc, epoch + 1)
+        tb.add_scalar("Train tail accuracy", train_tail_acc, epoch + 1)
         tb.add_scalar("Val Loss", avg_val_loss, epoch + 1)
-        tb.add_scalar("Val accuracy score", val_acc_score, epoch + 1)
-        tb.add_scalar("Val f1 score", val_f1_score, epoch + 1)
+        tb.add_scalar("Val color accuracy", val_color_acc, epoch + 1)
+        tb.add_scalar("Val tail accuracy", val_tail_acc, epoch + 1)
 
         elapsed = time.time() - start_time
 
@@ -172,64 +166,22 @@ def main():
             avg_val_loss: {avg_val_loss:.4f}  time: {elapsed:.0f}s"
         )
         LOGGER.info(
-            f"Epoch {epoch+1} - Accuracy: {val_acc_score} - F1-score {val_f1_score}"
+            f"Epoch {epoch+1} - Color Accuracy: {val_color_acc} - Tail Accuracy {val_tail_acc}"
         )
 
-        best_acc_bool = False
-        best_f1_bool = False
-
+        mean_acc = (val_color_acc + val_tail_acc) / 2
+        save_model(
+            model,
+            epoch + 1,
+            avg_train_loss,
+            avg_val_loss,
+            val_color_acc,
+            val_tail_acc,
+            f"{epoch}.pt",
+        )
         # Update best score
-        if val_acc_score >= best_acc_score:
-            best_acc_score = val_acc_score
-            best_acc_bool = True
-
-        if val_f1_score >= best_f1_score:
-            best_f1_score = val_f1_score
-            best_f1_bool = True
-
-        if best_acc_bool and best_f1_bool:
-            LOGGER.info(
-                f"Epoch {epoch+1} - Save Best Accuracy: {best_acc_score:.4f} - \
-                Save Best F1-score: {best_f1_score:.4f} Model"
-            )
-            save_model(
-                model, epoch + 1, avg_train_loss, avg_val_loss, val_f1_score, "best.pt"
-            )
-            best_epoch = epoch + 1
-            count_bad_epochs = 0
-        else:
-            count_bad_epochs += 1
-        print(count_bad_epochs)
-        LOGGER.info(f"Number of bad epochs {count_bad_epochs}")
-        # Early stopping
-        if count_bad_epochs > CFG.early_stopping:
-            LOGGER.info(
-                f"Stop the training, since the score has not improved for {CFG.early_stopping} epochs!"
-            )
-            save_model(
-                model,
-                epoch + 1,
-                avg_train_loss,
-                avg_val_loss,
-                val_f1_score,
-                f"{CFG.model_name}_epoch{epoch+1}_last.pth",
-            )
-            break
-        elif epoch + 1 == CFG.epochs:
-            LOGGER.info(f"Reached the final {epoch+1} epoch!")
-            save_model(
-                model,
-                epoch + 1,
-                avg_train_loss,
-                avg_val_loss,
-                val_f1_score,
-                f"{CFG.model_name}_epoch{epoch+1}_final.pth",
-            )
-
-    LOGGER.info(
-        f"AFTER TRAINING: Epoch {best_epoch}: Best Accuracy: {best_acc_score:.4f} - \
-                Best F1-score: {best_f1_score:.4f}"
-    )
+        if mean_acc >= best_acc_score:
+            LOGGER.info(f"Epoch {epoch+1} - Best Accuracy: {mean_acc:.4f}")
     tb.close()
 
 
