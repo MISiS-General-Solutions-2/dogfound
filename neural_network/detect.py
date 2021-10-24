@@ -1,8 +1,6 @@
-<<<<<<< HEAD:nn_mock/detect.py
 import math
 import sys
 
-import cv2
 import torch
 from torch import nn
 from torchvision import models
@@ -13,15 +11,12 @@ sys.path.append('yolov5/')
 
 yolo_model = torch.load('models/detect/yolo_finetuned_v2.pt')['model'].float().eval().autoshape()
 yolo_model = yolo_model.to(device)
-=======
 import torch
 import cv2
-import pandas as pd
 
 torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 yolo_model = torch.hub.load(
     'ultralytics/yolov5', 'custom', path='models/detect/yolo_finetuned_v2.pt')
->>>>>>> origin/master:neural_network/detect.py
 
 yolo_model.conf = 0.27
 yolo_model.iou = 0.45
@@ -88,7 +83,6 @@ def eval_on_image(file_path: str):
     return eval_res
 
 
-<<<<<<< HEAD:nn_mock/detect.py
 def run_analytics(file_path, response):
     cv_image = cv2.imread(file_path)
     cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
@@ -119,8 +113,4 @@ def run_analytics(file_path, response):
                     if dist <= 300:
                         response.is_the_owner_there = 1
     return response
-=======
-def run_analytics(result_df, response):
 
-    return response
->>>>>>> origin/master:neural_network/detect.py
