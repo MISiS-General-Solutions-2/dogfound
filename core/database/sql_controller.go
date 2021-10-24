@@ -41,18 +41,18 @@ func GetImageCount() (int, error) {
 	resp.Scan(&count)
 	return int(count.Int64), nil
 }
-func GetNewImages(images []string) ([]string, error) {
+func GetNewImages(images []string) (res []string, err error) {
 
 	q := "CREATE TEMP TABLE files(filename TEXT NOT NULL PRIMARY KEY);"
-	_, err := db.Exec(q)
+	_, err = db.Exec(q)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		q := "DROP TABLE files;"
-		_, err := db.Exec(q)
+		_, deferErr := db.Exec(q)
 		if err != nil {
-			panic(err)
+			err = fmt.Errorf("error during dropping temp table: %v", deferErr)
 		}
 	}()
 

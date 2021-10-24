@@ -10,11 +10,6 @@ import (
 
 // blocks
 func ProcessNewImages() (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("recovered from %v", r)
-		}
-	}()
 	for {
 		dir, imgs, err := database.GetImages()
 		if err != nil {
@@ -35,24 +30,44 @@ func ProcessNewImages() (err error) {
 			}
 		}
 
-		if err = GetImageClassInfo(dir, imgs); err != nil {
-			return err
-		}
-		if err = GetOCRInfo(dir, imgs); err != nil {
+		// if err = GetImageClassInfo(dir, imgs); err != nil {
+		// 	return err
+		// }
+		if err = GetOCRTextInfo(dir, imgs); err != nil {
 			return err
 		}
 		time.Sleep(5 * time.Second)
 	}
 }
-func GetOCRInfo(dir string, imgs []string) error {
+func GetOCRTextInfo(dir string, imgs []string) error {
 	if len(imgs) == 0 {
 		return nil
 	}
-	camIDs, err := cv.GetImagesCamIDs(dir, imgs)
-	if err != nil {
-		return err
-	}
-	timestamps, err := GetTimestampsMock(dir, imgs)
+
+	// numworkers := runtime.GOMAXPROCS(0) - 2
+	// wg := sync.WaitGroup{}
+	// camCh := make(chan []string, numworkers)
+	// timestampsCh := make(chan []int64, numworkers)
+	// for i := 0; i < numworkers; i++ {
+	// 	wg.Add(1)
+	// 	var err error
+	// 	go func() {
+	// 		defer wg.Done()
+	// 		var (
+	// 			camIDs     []string
+	// 			timestamps []int64
+	// 		)
+	// 		camIDs, timestamps, err = cv.ParseImages(dir, imgs)
+	// 		if err != nil {
+	// 			return
+	// 		}
+	// 		camCh <- camIDs
+	// 		timestampsCh <- timestamps
+	// 	}()
+	// }
+	// wg.Wait()
+
+	camIDs, timestamps, err := cv.ParseImages(dir, imgs)
 	if err != nil {
 		return err
 	}
@@ -66,11 +81,24 @@ func GetOCRInfo(dir string, imgs []string) error {
 	}
 
 	addrReqs := make([]database.CameraInfo, len(imgs))
-	for i := range addrReqs {
+	for i := range camIDs {
 		addrReqs[i].Filename = imgs[i]
 		addrReqs[i].CamID = camIDs[i]
 		addrReqs[i].TimeStamp = timestamps[i]
 	}
+	// i := 0
+	// for {
+	// 	if len(camCh) == 0 {
+	// 		break
+	// 	}
+	// 	camIDs := <-camCh
+	// 	timestamps := <-timestampsCh
+	// 	addrReqs[i].Filename = imgs[i]
+	// 	addrReqs[i].CamID = camIDs[i]
+	// 	addrReqs[i].TimeStamp = timestamps[i]
+	// 	i += 1
+	// }
+
 	return database.SetCameraInfo(addrReqs)
 }
 func GetImageClassInfo(dir string, imgs []string) error {
@@ -82,7 +110,4 @@ func GetImageClassInfo(dir string, imgs []string) error {
 		fmt.Println(res[i].Vis.Probabilities)
 	}
 	return nil
-}
-func GetTimestampsMock(dir string, imgs []string) ([]int64, error) {
-	return make([]int64, len(imgs)), nil
 }
