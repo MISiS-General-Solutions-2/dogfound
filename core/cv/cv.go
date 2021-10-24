@@ -23,8 +23,6 @@ func ParseImages(directory string, imgs []string) ([]string, []int64, error) {
 		return s != "", nil
 	}
 	timestampCb := func(img []byte) (bool, error) {
-		timestamps = append(timestamps, 0)
-		return false, nil
 		if len(img) == 0 {
 			timestamps = append(timestamps, 0)
 			return false, nil

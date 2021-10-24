@@ -55,20 +55,12 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 	if err != nil {
 		return err
 	}
-	wg.Wait()
 
 	addrReqs := make([]database.CameraInfo, len(imgs))
-	i := 0
-	for {
-		if len(camCh) == 0 {
-			break
-		}
-		camIDs := <-camCh
-		timestamps := <-timestampsCh
+	for i := range imgs {
 		addrReqs[i].Filename = imgs[i]
 		addrReqs[i].CamID = camIDs[i]
 		addrReqs[i].TimeStamp = timestamps[i]
-		i += 1
 	}
 
 	return database.SetCameraInfo(addrReqs)

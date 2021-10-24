@@ -48,6 +48,6 @@ def get_classes(file: str) -> Response:
     response = Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0,
                         color=0, tail=0, vis=Visualization(crop=[0, 0, 5, 5], probabilities="in progress"))
 
-    res_df = detect.eval_on_image(file)
-
+    response = detect.run_analytics(file, response)
     return response
+

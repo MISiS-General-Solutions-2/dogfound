@@ -13,12 +13,14 @@ docker cp ./core/my_data/img dogfound-core-1:/opt/dogfound/data/
 Необходим установленный Node.js
 
 Из папки front
+
+npm install yarn -g
+
 yarn start
 
-Веб-страница сервиса доступна на порте 3001. На локальной машине доступ можно получить по адресу http://localhost:1022/
+Веб-страница сервиса доступна на порте 1022. На локальной машине доступ можно получить по адресу http://localhost:1022/
 
-# Разделы
-
-core: бекенд-сервис, отвечающий за обращения к базе данных, и взаимодействие с нейросетью
-neural_network: сервис, классифицирующий изображения
-front: фронте-энд
+# Ноутбук с построением csv файла на датасете и AI
+Находится в neural_network/notebooks/build_test_csv.ipynb
+"Боевая" логика для сервиса - neural_network/detect.py
+Обученные модели - YOLOv5l и resnet38 в neural_network/models
