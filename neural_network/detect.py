@@ -11,8 +11,6 @@ sys.path.append('yolov5/')
 
 yolo_model = torch.load('models/detect/yolo_finetuned_v2.pt')['model'].float().eval().autoshape()
 yolo_model = yolo_model.to(device)
-import torch
-import cv2
 
 torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 yolo_model = torch.hub.load(

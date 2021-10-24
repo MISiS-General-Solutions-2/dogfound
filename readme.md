@@ -16,3 +16,8 @@ docker cp ./core/my_data/img dogfound-core-1:/opt/dogfound/data/
 yarn start
 
 Веб-страница сервиса доступна на порте 1022. На локальной машине доступ можно получить по адресу http://localhost:1022/
+
+# Ноутбук с построением csv файла на датасете и AI
+Находится в neural_network/notebooks/build_test_csv.ipynb
+"Боевая" логика для сервиса - neural_network/detect.py
+Обученные модели - YOLOv5l и resnet38 в neural_network/models
