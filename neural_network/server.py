@@ -45,17 +45,9 @@ async def categorize(req: Request):
 
 def get_classes(file: str) -> Response:
     # implement this function
-    response = Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0, color=0, tail=0, vis=Visualization(crop=[0, 0, 5, 5], probabilities=prob))
-    prob = "no file exists"
-    if file_exists(file):
-        prob = file
+    response = Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0,
+                        color=0, tail=0, vis=Visualization(crop=[0, 0, 5, 5], probabilities="in progress"))
 
     res_df = detect.eval_on_image(file)
 
-
     return response
-
-
-def file_exists(file: str) -> bool:
-    my_file = Path(file)
-    return my_file.is_file()

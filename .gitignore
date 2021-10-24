@@ -9,6 +9,7 @@ __*
 *.o
 *.a
 *.log
+core/.vscode
 .vscode
 .zip
 

@@ -4,10 +4,8 @@ import (
 	"dogfound/cv"
 	"dogfound/database"
 	"dogfound/http"
-	"fmt"
+	"log"
 	"math"
-	"runtime"
-	"sync"
 	"time"
 )
 
@@ -33,9 +31,9 @@ func ProcessNewImages() (err error) {
 			}
 		}
 
-		// if err = GetImageClassInfo(dir, imgs); err != nil {
-		// 	return err
-		// }
+		if err = GetImageClassInfo(dir, imgs); err != nil {
+			log.Println(err)
+		}
 		if err = GetOCRTextInfo(dir, imgs); err != nil {
 			return err
 		}
@@ -53,37 +51,11 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 	}
 	imgs = imgs[:10]
 
-	numworkers := runtime.GOMAXPROCS(0) - 2
-	wg := sync.WaitGroup{}
-	camCh := make(chan []string, numworkers)
-	timestampsCh := make(chan []int64, numworkers)
-	for i := 0; i < numworkers; i++ {
-		wg.Add(1)
-		var err error
-		start, end := getPartOfSlice(len(imgs), i, numworkers)
-		go func() {
-			defer wg.Done()
-			var (
-				camIDs     []string
-				timestamps []int64
-			)
-			camIDs, timestamps, err = cv.ParseImages(dir, imgs[start:end])
-			if err != nil {
-				return
-			}
-			camCh <- camIDs
-			timestampsCh <- timestamps
-		}()
-	}
-	wg.Wait()
-
-	classReqs := make([]database.SetClassesRequest, len(imgs))
-	for i := range classReqs {
-		classReqs[i].Filename = imgs[i]
-	}
-	if err := database.SetClasses(classReqs); err != nil {
+	camIDs, timestamps, err := cv.ParseImages(dir, imgs)
+	if err != nil {
 		return err
 	}
+	wg.Wait()
 
 	addrReqs := make([]database.CameraInfo, len(imgs))
 	i := 0
@@ -102,12 +74,28 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 	return database.SetCameraInfo(addrReqs)
 }
 func GetImageClassInfo(dir string, imgs []string) error {
+	i := 10
+	for {
+		if i >= len(imgs) {
+			break
+		}
+		res, err := http.Categorize(dir, imgs[:i])
+		if err != nil {
+			return err
+		}
+		if err = database.SetClasses(res); err != nil {
+			return err
+		}
+
+		imgs = imgs[i:]
+		i += 10
+	}
 	res, err := http.Categorize(dir, imgs)
 	if err != nil {
 		return err
 	}
-	for i := range res {
-		fmt.Println(res[i].Vis.Probabilities)
+	if err = database.SetClasses(res); err != nil {
+		return err
 	}
 	return nil
 }
