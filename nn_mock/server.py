@@ -51,7 +51,7 @@ def get_classes(file: str) -> Response:
         prob = file
 
     res_df = detect.eval_on_image(file)
-
+    response = detect.run_analytics(res_df, response)
 
     return response
 
