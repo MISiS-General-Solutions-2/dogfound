@@ -41,7 +41,7 @@ class Main extends React.Component {
 
     option2Get(e) {
         this.setState({
-            option1: e
+            option2: e
         })
         console.log(e);
     }
@@ -65,11 +65,11 @@ class Main extends React.Component {
     sendData() {
         const { option1, option2, timestamp } = this.state;
         let data = {
-            "color": 0,
-            "tail": 0,
+            "color": option1,
+            "tail": option2,
             "timestamp": timestamp,
         }
-        const url = 'http://127.0.0.1:5000/api/image/by-classes'
+        const url = 'http://5.228.244.67:5000/api/image/by-classes'
         const options = {
             method: 'POST',
             headers: { 'content-type': 'application/json' },

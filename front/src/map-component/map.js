@@ -80,7 +80,7 @@ export default class MapComponent extends React.Component {
                 onViewportChange={viewport => this.setState({ viewport })}
                 mapboxApiAccessToken={MAPBOX_TOKEN}
             >
-                {data !== undefined ?
+                {data !== undefined && data !== null && data !== [] ?
                     data.map((el) => (
                         el.lonlat[0] !== 0 && el.lonlat[1] !== 0 ?
                             <Marker key={el.filename} latitude={el.lonlat[0]} longitude={el.lonlat[1]} offsetLeft={0} offsetTop={-40} onClick={() => this.showModal(el.filename)}>

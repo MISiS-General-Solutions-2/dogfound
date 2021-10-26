@@ -31,15 +31,25 @@ func Connect() func() {
 	}
 }
 func GetImageCount() (int, error) {
-	q := "SELECT COUNT(color) FROM images WHERE color!=NULL"
-	resp, err := db.Query(q)
+	query, err := db.Prepare("SELECT COUNT(color) FROM images WHERE color IS NOT NULL")
+
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+
+	defer query.Close()
+
+	// Execute query using 'id' and place value into 'output'
+	var output string
+	err = query.QueryRow().Scan(&output)
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Close()
-	var count sql.NullInt64
-	resp.Scan(&count)
-	return int(count.Int64), nil
+	count, err := strconv.Atoi(output)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 func GetNewImages(images []string) (res []string, err error) {
 
@@ -75,7 +85,7 @@ func GetNewImages(images []string) (res []string, err error) {
 		return nil, err
 	}
 
-	q = "SELECT files.filename FROM files WHERE files.filename NOT IN (SELECT images.filename FROM images);"
+	q = "SELECT files.filename FROM files WHERE files.filename NOT IN (SELECT images.filename FROM images)"
 	rows, err := db.Query(q)
 	if err != nil {
 		return nil, err
@@ -206,7 +216,7 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 			if !first {
 				b.WriteString(" AND ")
 			}
-			b.WriteString("(timestamp=0 OR timestamp>=")
+			b.WriteString("(timestamp IS NULL OR timestamp=0 OR timestamp>=")
 			b.WriteString(strconv.Itoa(int(v.(float64))))
 			b.WriteRune(')')
 		default:

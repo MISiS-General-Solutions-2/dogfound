@@ -13,19 +13,21 @@ export default class ListComponent extends React.Component {
         return (
             <div className="listContainer">
                 <div className="listDiv">
-                    {data.map((el) => (
-                        <button ket={el.filename} className="listButton">
-                            {el.address !== '' ?
+                    {data !== null ?
+                        data.map((el) => (
+                            <button ket={el.filename} className="listButton">
+                                {el.address !== '' ?
+                                    <p className="listAddress">
+                                        {el.address}
+                                    </p>
+                                    : null}
                                 <p className="listAddress">
-                                    {el.address}
+                                    {el.timestamp}
                                 </p>
-                                : null}
-                            <p className="listAddress">
-                                {el.timestamp}
-                            </p>
-                            <img src={"http://localhost:5000/api/image/" + el.filename} alt="" />
-                        </button>
-                    ))}
+                                <img src={"http://5.228.244.67:5000/api/image/" + el.filename} alt="" />
+                            </button>
+                        ))
+                        : null}
                 </div>
                 <div className="listResetDiv">
                     <button className="listReset" onClick={action}>

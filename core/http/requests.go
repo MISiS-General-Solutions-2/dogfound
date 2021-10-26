@@ -10,10 +10,7 @@ import (
 
 var (
 	nnServiceCfg = Config{
-		Address: "neural_network:80",
-	}
-	ocrServiceCfg = Config{
-		Address: "ocr:80",
+		Address: "localhost:6002",
 	}
 )
 
@@ -47,6 +44,9 @@ func Categorize(dir string, imgs []string) ([]database.SetClassesRequest, error)
 	var res []database.SetClassesRequest
 	if err = json.Unmarshal(respBody, &res); err != nil {
 		return nil, err
+	}
+	for i := range imgs {
+		res[i].Filename = imgs[i]
 	}
 	return res, nil
 }

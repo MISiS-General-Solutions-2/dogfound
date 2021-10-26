@@ -20,23 +20,27 @@ func ProcessNewImages() (err error) {
 		if err != nil {
 			return err
 		}
-		if count != len(dir) {
-			if err = database.DropRecordsForDeletedImages(imgs); err != nil {
-				return err
-			}
-
-			imgs, err = database.GetNewImages(imgs)
-			if err != nil {
-				return err
-			}
+		if count == len(imgs) {
+			return nil
 		}
+		// if count != len(imgs) {
+		// 	if err = database.DropRecordsForDeletedImages(imgs); err != nil {
+		// 		return err
+		// 	}
 
-		if err = GetImageClassInfo(dir, imgs); err != nil {
-			log.Println(err)
-		}
+		// 	imgs, err = database.GetNewImages(imgs)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
+
 		if err = GetOCRTextInfo(dir, imgs); err != nil {
 			return err
 		}
+		if err = GetImageClassInfo(dir, imgs); err != nil {
+			log.Println(err)
+		}
+
 		time.Sleep(5 * time.Second)
 	}
 }
@@ -49,7 +53,6 @@ func GetOCRTextInfo(dir string, imgs []string) error {
 	if len(imgs) == 0 {
 		return nil
 	}
-	imgs = imgs[:10]
 
 	camIDs, timestamps, err := cv.ParseImages(dir, imgs)
 	if err != nil {

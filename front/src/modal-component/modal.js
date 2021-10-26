@@ -11,7 +11,7 @@ export default class ModalComponent extends React.Component {
         return (
             <div className="modalWindow">
                 <button className="closeButton" onClick={action}></button>
-                <img src={"http://localhost:5000/api/image/" + filename} alt="" />
+                <img src={"http://5.228.244.67:5000/api/image/" + filename} alt="" />
             </div>
         )
     }

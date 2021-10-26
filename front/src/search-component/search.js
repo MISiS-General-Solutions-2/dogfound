@@ -27,6 +27,8 @@ export default class Search extends React.Component {
             value: e
         })
         action1(e.getTime() / 1000);
+        console.log(e.getTime());
+        console.log(new Date().getTime());
         this.setState({
             error1: false,
             value1: e.getTime() / 1000,
@@ -43,6 +45,7 @@ export default class Search extends React.Component {
     select2(e) {
         const action3 = this.props.action3;
         action3(e.value);
+        console.log(e.value);
         this.setState({
             error3: false,
             value3: e.value,
@@ -62,13 +65,13 @@ export default class Search extends React.Component {
     }
     render() {
         const options1 = [
-            { value: 'cветлая', label: 'Cветлая' },
-            { value: 'темная', label: 'Темная' },
-            { value: 'разноцветная', label: 'Разноцветная' }
+            { value: 1, label: 'Темная' },
+            { value: 2, label: 'Cветлая' },
+            { value: 3, label: 'Разноцветная' }
         ]
         const options2 = [
-            { value: 'длинный хвост', label: 'Длинный хвост' },
-            { value: 'короткий хвост', label: 'Короткий хвост' }
+            { value: 1, label: 'Короткий хвост' },
+            { value: 2, label: 'Длинный хвост' }
         ]
         const { value, error1, error2, error3 } = this.state;
         const data = this.props.data;
@@ -86,7 +89,7 @@ export default class Search extends React.Component {
                         onChange={this.dateChange}
                         value={value}
                         defaultValue=""
-                        dateFormat="DD/MM/YYYY"
+                        dateFormat="MM/DD/YYYY"
                     />
                     <div className="option">Окрас
                         {error2 ? <div className="error">Поле не заполнено!</div> : null}

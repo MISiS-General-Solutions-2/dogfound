@@ -5,16 +5,14 @@ import torch
 from torch import nn
 from torchvision import models
 from torchvision import transforms
+import cv2
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 sys.path.append('yolov5/')
 
-yolo_model = torch.load('models/detect/yolo_finetuned_v2.pt')['model'].float().eval().autoshape()
+yolo_model = torch.load('models/detect/yolo_finetuned_v2.pt',
+                        map_location=device)['model'].float().eval().autoshape()
 yolo_model = yolo_model.to(device)
-
-torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-yolo_model = torch.hub.load(
-    'ultralytics/yolov5', 'custom', path='models/detect/yolo_finetuned_v2.pt')
 
 yolo_model.conf = 0.27
 yolo_model.iou = 0.45
@@ -55,7 +53,8 @@ class MultiOutputModel(nn.Module):
 
 classifier_model = MultiOutputModel()
 classifier_model = classifier_model.to(device)
-weigths = torch.load('../models/classifier/resnet.pt')['model']
+weigths = torch.load('models/classifier/resnet.pt',
+                     map_location=device)['model']
 classifier_model.load_state_dict(weigths)
 
 
@@ -91,25 +90,26 @@ def run_analytics(file_path, response):
         dogs = res_df.query("name=='dog'")
         if len(dogs) > 0:
             response.is_it_a_dog = 1
-            best_dog = dogs.sort_values(by='confidence', ascending=False).iloc[0]
+            best_dog = dogs.sort_values(
+                by='confidence', ascending=False).iloc[0]
             coords = (int(best_dog['ycenter']-best_dog['height']//2),
                       int(best_dog['ycenter']+best_dog['height']//2),
                       int(best_dog['xcenter']-best_dog['width']//2),
                       int(best_dog['xcenter']+best_dog['width']//2))
             response.vis.crop = [coords[0], coords[2], coords[1], coords[3]]
             dog_crop = cv_image[coords[0]:coords[1], coords[2]:coords[3]]
-            classes = classifier_model(tr_pipe(dog_crop).unsqueeze(0).to(device))
+            classes = classifier_model(
+                tr_pipe(dog_crop).unsqueeze(0).to(device))
             color_cl = classes['color'].argmax().cpu().detach().item() + 1
             tail_cl = classes['tail'].argmax().cpu().detach().item() + 1
             response.color = color_cl
             response.tail = tail_cl
             humans = res_df.query("name=='person'")
             if len(humans) > 0:
-                best_dog_coords = best_dog['xcenter'] ,best_dog['ycenter']
+                best_dog_coords = best_dog['xcenter'], best_dog['ycenter']
                 for i, r in humans.iterrows():
                     person_coords = r['xcenter'], r['ycenter']
                     dist = math.dist(person_coords, best_dog_coords)
                     if dist <= 300:
                         response.is_the_owner_there = 1
     return response
-
