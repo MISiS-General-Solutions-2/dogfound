@@ -1,19 +1,36 @@
 version: '3'
 
 services:
+  reverse-proxy:
+    image: traefik:v2.1
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+    ports:
+      # use this port
+      - "1022:80"
+      # web ui
+      - "8080:8080"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   core:
     build:
       context: ./core
       dockerfile: Dockerfile
-    ports:
-          - "5000:5000"
     volumes:
           - data:/opt/dogfound/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.backend.loadbalancer.server.port=5000"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
   neural_network:
     build:
       context: ./neural_network
       dockerfile: Dockerfile
     ports:
+          # debug
           - "6002:80"
     volumes:
           - data:/opt/dogfound/data
@@ -21,8 +38,10 @@ services:
     build:
       context: ./front
       dockerfile: Dockerfile
-    ports:
-          - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
 
 volumes:
   data:

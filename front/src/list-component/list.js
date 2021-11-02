@@ -24,7 +24,7 @@ export default class ListComponent extends React.Component {
                                 <p className="listAddress">
                                     {el.timestamp}
                                 </p>
-                                <img src={"http://5.228.244.67:5000/api/image/" + el.filename} alt="" />
+                                <img src={"http://5.228.244.67:1022/api/image/" + el.filename} alt="" />
                             </button>
                         ))
                         : null}

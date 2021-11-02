@@ -69,7 +69,7 @@ class Main extends React.Component {
             "tail": option2,
             "timestamp": timestamp,
         }
-        const url = 'http://5.228.244.67:5000/api/image/by-classes'
+        const url = 'http://5.228.244.67:1022/api/image/by-classes'
         const options = {
             method: 'POST',
             headers: { 'content-type': 'application/json' },

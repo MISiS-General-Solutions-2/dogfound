@@ -85,7 +85,7 @@ export default class MapComponent extends React.Component {
                         el.lonlat[0] !== 0 && el.lonlat[1] !== 0 ?
                             <Marker key={el.filename} latitude={el.lonlat[0]} longitude={el.lonlat[1]} offsetLeft={0} offsetTop={-40} onClick={() => this.showModal(el.filename)}>
                                 <div className="markerDiv">
-                                    {/* <img className={"imgMarker"} src={"http://localhost:5000/api/image/" + el.filename} alt="" /> */}
+                                    {/* <img className={"imgMarker"} src={"http://localhost:1022/api/image/" + el.filename} alt="" /> */}
                                 </div>
                             </Marker>
                             : null
