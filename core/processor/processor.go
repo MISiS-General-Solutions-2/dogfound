@@ -3,94 +3,130 @@ package processor
 import (
 	"dogfound/cv"
 	"dogfound/database"
+	"dogfound/errors"
 	"dogfound/http"
 	"log"
-	"math"
+	"os"
+	"runtime/debug"
+	"sync"
 	"time"
 )
 
-// blocks
-func ProcessNewImages() (err error) {
+type processor struct {
+	Config
+	inputChannel chan string
+	wg           sync.WaitGroup
+
+	statuses map[string]struct{}
+	mu       sync.Mutex
+}
+
+func StartProcessor(cfg *Config) error {
+
+	proc := processor{Config: *cfg}
+	proc.statuses = make(map[string]struct{})
+	proc.inputChannel = make(chan string, 100)
+	proc.start()
 	for {
-		dir, imgs, err := database.GetImages()
-		if err != nil {
+		if err := proc.addNewImages(); err != nil {
 			return err
 		}
-		count, err := database.GetImageCount()
-		if err != nil {
-			return err
-		}
-		if count == len(imgs) {
-			return nil
-		}
-		// if count != len(imgs) {
-		// 	if err = database.DropRecordsForDeletedImages(imgs); err != nil {
-		// 		return err
-		// 	}
-
-		// 	imgs, err = database.GetNewImages(imgs)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
-
-		if err = GetOCRTextInfo(dir, imgs); err != nil {
-			return err
-		}
-		if err = GetImageClassInfo(dir, imgs); err != nil {
-			log.Println(err)
-		}
-
-		time.Sleep(5 * time.Second)
+		time.Sleep(proc.SampleInterval)
 	}
 }
-func getPartOfSlice(l, i, numpatrs int) (int, int) {
-	start := (l / numpatrs) * i
-	end := int(math.Min(float64(l), float64(l/numpatrs*(i+1))))
-	return start, end
+func (r *processor) shouldEnqueueImage(img string) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, exists := r.statuses[img]; exists {
+		return false
+	}
+	r.statuses[img] = struct{}{}
+	return true
 }
-func GetOCRTextInfo(dir string, imgs []string) error {
+func (r *processor) addNewImages() error {
+	imgs, err := database.GetNewImages(r.ImageSourceDirectory)
+	if err != nil {
+		return err
+	}
 	if len(imgs) == 0 {
 		return nil
 	}
-
-	camIDs, timestamps, err := cv.ParseImages(dir, imgs)
-	if err != nil {
-		return err
-	}
-
-	addrReqs := make([]database.CameraInfo, len(imgs))
-	for i := range imgs {
-		addrReqs[i].Filename = imgs[i]
-		addrReqs[i].CamID = camIDs[i]
-		addrReqs[i].TimeStamp = timestamps[i]
-	}
-
-	return database.SetCameraInfo(addrReqs)
-}
-func GetImageClassInfo(dir string, imgs []string) error {
-	i := 10
-	for {
-		if i >= len(imgs) {
-			break
+	for _, img := range imgs {
+		if r.shouldEnqueueImage(img) {
+			r.inputChannel <- img
 		}
-		res, err := http.Categorize(dir, imgs[:i])
-		if err != nil {
-			return err
-		}
-		if err = database.SetClasses(res); err != nil {
-			return err
-		}
-
-		imgs = imgs[i:]
-		i += 10
-	}
-	res, err := http.Categorize(dir, imgs)
-	if err != nil {
-		return err
-	}
-	if err = database.SetClasses(res); err != nil {
-		return err
 	}
 	return nil
+}
+func (r *processor) start() {
+	for i := 0; i < r.NumWorkers; i++ {
+		r.wg.Add(1)
+		go r.worker()
+	}
+}
+func (r *processor) worker() {
+	defer r.wg.Done()
+	for image := range r.inputChannel {
+		r.process(image)
+	}
+}
+func (r *processor) dropImage(image string) {
+	if err := os.Remove(r.ImageSourceDirectory + image); err != nil {
+		log.Println(err)
+	}
+	r.mu.Lock()
+	delete(r.statuses, image)
+	r.mu.Unlock()
+}
+func (r *processor) process(image string) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("panic %v processing image %v", err, image)
+			log.Println(string(debug.Stack()))
+		}
+	}()
+
+	camID, timestamp, err := cv.ParseImage(r.ImageSourceDirectory, image)
+	if err != nil {
+		log.Printf("Dropping bad image %v because of error %v\n", image, err)
+		r.dropImage(image)
+		return
+	}
+	var classInfo database.ClassInfo
+	if classInfo, err = r.GetClassInfo(image); err != nil {
+		if !errors.IsDestinationError(err) {
+			log.Printf("Dropping bad image %v because of error %v\n", image, err)
+			r.dropImage(image)
+		} else {
+			r.mu.Lock()
+			delete(r.statuses, image)
+			r.mu.Unlock()
+			log.Printf("Destination error occured for image %v. Will try later. Error is %v\n", image, err)
+		}
+		return
+	}
+	r.saveProcessedImage(image, camID, timestamp, classInfo)
+}
+func (r *processor) saveProcessedImage(image, camID string, timestamp int64, classInfo database.ClassInfo) {
+	record := database.ImagesRecord{
+		Filename:  image,
+		ClassInfo: classInfo,
+		CamID:     camID,
+		TimeStamp: timestamp,
+	}
+	defer func() {
+		r.mu.Lock()
+		delete(r.statuses, image)
+		r.mu.Unlock()
+	}()
+	if err := database.AddImage(r.ImageSourceDirectory, record); err != nil {
+		log.Println(err)
+	}
+}
+
+func (r *processor) GetClassInfo(img string) (database.ClassInfo, error) {
+	if r.Classificator.Address == "" {
+		return database.ClassInfo{}, nil
+	}
+	return http.Categorize(r.Classificator, r.ImageSourceDirectory+img)
 }

@@ -4,49 +4,44 @@ import (
 	"bytes"
 	"dogfound/database"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"time"
 )
 
-var (
-	nnServiceCfg = Config{
-		Address: "neural_network:80",
-	}
-)
-
-func Categorize(dir string, imgs []string) ([]database.SetClassesRequest, error) {
-	if len(imgs) == 0 {
-		return nil, nil
-	}
-	body, err := json.Marshal(ImageRequest{Dir: dir, Images: imgs})
+func Categorize(categorizationServer Destination, img string) (info database.ClassInfo, err error) {
+	var body []byte
+	body, err = json.Marshal(ImageRequest{Image: img})
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	req, err := http.NewRequest("POST", "http://"+nnServiceCfg.Address+"/api/categorize", bytes.NewReader(body))
-
-	fmt.Println(req.URL)
-	if err != nil {
-		return nil, err
-	}
 	var (
 		respBody []byte
 		code     int
 	)
-	respBody, code, err = RecieveResponseJSON(http.DefaultClient.Do(req))
+	for i := 0; i < categorizationServer.Retries; i++ {
+		var req *http.Request
+		req, err = http.NewRequest("POST", "http://"+categorizationServer.Address+"/api/categorize", bytes.NewReader(body))
+
+		if err != nil {
+			return
+		}
+		respBody, code, err = RecieveResponseJSON(http.DefaultClient.Do(req))
+		if err == nil {
+			break
+		}
+		time.Sleep(categorizationServer.RetryInterval)
+	}
 	if err != nil {
-		return nil, err
+		return
 	}
 	if code != http.StatusOK {
-		return nil, fmt.Errorf("unexpected response code %v with body %s", code, respBody)
+		return
 	}
 
-	var res []database.SetClassesRequest
+	var res database.ClassInfo
 	if err = json.Unmarshal(respBody, &res); err != nil {
-		return nil, err
-	}
-	for i := range imgs {
-		res[i].Filename = imgs[i]
+		return
 	}
 	return res, nil
 }

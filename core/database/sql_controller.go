@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -51,61 +52,62 @@ func GetImageCount() (int, error) {
 	}
 	return count, nil
 }
-func GetNewImages(images []string) (res []string, err error) {
 
-	q := "CREATE TEMP TABLE files(filename TEXT NOT NULL PRIMARY KEY);"
-	_, err = db.Exec(q)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		q := "DROP TABLE files;"
-		_, deferErr := db.Exec(q)
-		if err != nil {
-			err = fmt.Errorf("error during dropping temp table: %v", deferErr)
-		}
-	}()
+// func GetNewImages(images []string) (res []string, err error) {
 
-	tx, err := db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	stmt, err := tx.Prepare(`INSERT INTO files VALUES(?)`)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-	for _, img := range images {
-		_, err = stmt.Exec(img)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if err = tx.Commit(); err != nil {
-		return nil, err
-	}
+// 	q := "CREATE TEMP TABLE files(filename TEXT NOT NULL PRIMARY KEY);"
+// 	_, err = db.Exec(q)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer func() {
+// 		q := "DROP TABLE files;"
+// 		_, deferErr := db.Exec(q)
+// 		if err != nil {
+// 			err = fmt.Errorf("error during dropping temp table: %v", deferErr)
+// 		}
+// 	}()
 
-	q = "SELECT files.filename FROM files WHERE files.filename NOT IN (SELECT images.filename FROM images)"
-	rows, err := db.Query(q)
-	if err != nil {
-		return nil, err
-	}
-	var result []string
-	defer rows.Close()
-	for rows.Next() {
-		var img string
-		err = rows.Scan(&img)
-		if err != nil {
-			log.Fatal(err)
-		}
-		result = append(result, img)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-	return result, err
-}
+// 	tx, err := db.Begin()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	stmt, err := tx.Prepare(`INSERT INTO files VALUES(?)`)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer stmt.Close()
+// 	for _, img := range images {
+// 		_, err = stmt.Exec(img)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	}
+// 	if err = tx.Commit(); err != nil {
+// 		return nil, err
+// 	}
+
+// 	q = "SELECT files.filename FROM files WHERE files.filename NOT IN (SELECT images.filename FROM images)"
+// 	rows, err := db.Query(q)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var result []string
+// 	defer rows.Close()
+// 	for rows.Next() {
+// 		var img string
+// 		err = rows.Scan(&img)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		result = append(result, img)
+// 	}
+// 	err = rows.Err()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return result, err
+// }
 func DropRecordsForDeletedImages(images []string) error {
 	list := strings.Join(images, `","`)
 	stmt := fmt.Sprintf(`DELETE FROM images WHERE filename not in ("%v")`, list)
@@ -145,39 +147,70 @@ func SetCameraInfo(reqs []CameraInfo) error {
 	}
 	return tx.Commit()
 }
-
-func SetClasses(reqs []SetClassesRequest) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	stmt, err := tx.Prepare(`
-	INSERT INTO images(filename,is_animal_there,is_the_owner_there,color,tail)
-		VALUES(?,?,?,?,?)
-	ON CONFLICT(filename)
-	DO UPDATE
-	SET
-		is_animal_there=?,
-		is_the_owner_there=?,
-		color=?,
-		tail=?
-	WHERE filename = ?
-	`)
+func AddImage(imageSourceDirectory string, record ImagesRecord) error {
+	stmt, err := db.Prepare(`INSERT INTO images(filename,is_animal_there,is_it_a_dog,is_the_owner_there,color,tail,cam_id,timestamp)
+			VALUES(?,?,?,?,?,?,?,?)
+		ON CONFLICT(filename)
+		DO UPDATE
+		SET
+			is_animal_there=?,
+			is_it_a_dog=?,
+			is_the_owner_there=?,
+			color=?,
+			tail=?,
+			cam_id=?,
+			timestamp=?
+		WHERE filename = ?
+		`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	for _, rec := range reqs {
-		if !imageExists(rec.Filename) {
-			return fmt.Errorf("image %v does not exist", rec.Filename)
-		}
-		_, err = stmt.Exec(rec.Filename, rec.IsAnimal, rec.IsWithOwner, rec.Color, rec.Tail, rec.IsAnimal, rec.IsWithOwner, rec.Color, rec.Tail, rec.Filename)
-		if err != nil {
-			return err
-		}
+
+	_, err = stmt.Exec(record.Filename, record.IsAnimal, record.IsDog, record.IsWithOwner, record.Color, record.Tail, record.CamID, record.TimeStamp, record.IsAnimal, record.IsDog, record.IsWithOwner, record.Color, record.Tail, record.CamID, record.TimeStamp, record.Filename)
+	if err != nil {
+		return err
 	}
-	return tx.Commit()
+
+	if err = os.Rename(imageSourceDirectory+record.Filename, imagePath+record.Filename); err != nil {
+		return err
+	}
+
+	return nil
 }
+
+// func SetClasses(reqs []ClassInfo) error {
+// 	tx, err := db.Begin()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	stmt, err := tx.Prepare(`
+// 	INSERT INTO images(filename,is_animal_there,is_the_owner_there,color,tail)
+// 		VALUES(?,?,?,?,?)
+// 	ON CONFLICT(filename)
+// 	DO UPDATE
+// 	SET
+// 		is_animal_there=?,
+// 		is_the_owner_there=?,
+// 		color=?,
+// 		tail=?
+// 	WHERE filename = ?
+// 	`)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer stmt.Close()
+// 	for _, rec := range reqs {
+// 		if !imageExists(rec.Filename) {
+// 			return fmt.Errorf("image %v does not exist", rec.Filename)
+// 		}
+// 		_, err = stmt.Exec(rec.Filename, rec.IsAnimal, rec.IsWithOwner, rec.Color, rec.Tail, rec.IsAnimal, rec.IsWithOwner, rec.Color, rec.Tail, rec.Filename)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return tx.Commit()
+// }
 func ValidateRequest(req map[string]interface{}) error {
 	for k := range req {
 		switch k {

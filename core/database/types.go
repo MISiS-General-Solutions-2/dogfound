@@ -14,9 +14,16 @@ const (
 	LatLon = "latlon"
 )
 
-type SetClassesRequest struct {
+type ImagesRecord struct {
 	Filename string `json:"filename"`
 
+	ClassInfo `json:",inline"`
+
+	CamID     string `json:"cam_id"`
+	TimeStamp int64  `json:"timestamp"`
+}
+
+type ClassInfo struct {
 	IsAnimal    int `json:"is_animal_there"`
 	IsDog       int `json:"is_it_a_dog"`
 	IsWithOwner int `json:"is_the_owner_there"`

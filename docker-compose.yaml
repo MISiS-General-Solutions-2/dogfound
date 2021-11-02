@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     ports:
           # debug
-          - "6002:80"
+          - "6002:6002"
     volumes:
           - data:/opt/dogfound/data
   front:

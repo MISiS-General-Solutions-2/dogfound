@@ -13,19 +13,21 @@ const (
 func GetImagePath(name string) string {
 	return imagePath + name
 }
-func getFilesInDirectory(dir string) (string, []string, error) {
+func getFilesInDirectory(dir string) ([]string, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	result := make([]string, len(files))
 	for i, f := range files {
-		result[i] = f.Name()
+		if !f.IsDir() {
+			result[i] = f.Name()
+		}
 	}
-	return dir, result, nil
+	return result, nil
 }
-func GetImages() (string, []string, error) {
-	return getFilesInDirectory(imagePath)
+func GetNewImages(source string) ([]string, error) {
+	return getFilesInDirectory(source)
 }
 func imageExists(filename string) bool {
 	if _, err := os.Stat(GetImagePath(filename)); errors.Is(err, os.ErrNotExist) {

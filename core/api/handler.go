@@ -25,6 +25,7 @@ func getImagesByFeatures(ctx *gin.Context) {
 	imgs, err := database.GetImagesByClasses(req)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	ctx.JSON(http.StatusOK, imgs)
 }

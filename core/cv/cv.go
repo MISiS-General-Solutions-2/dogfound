@@ -7,6 +7,36 @@ import (
 	"gocv.io/x/gocv"
 )
 
+func ParseImage(directory string, img string) (camID string, timestamp int64, err error) {
+	camIDCb := func(img []byte) (bool, error) {
+		if len(img) == 0 {
+			camID = ""
+			return false, nil
+		}
+		s, err := parseCamID(img)
+		if err != nil {
+			return false, err
+		}
+		camID = s
+		return s != "", nil
+	}
+	timestampCb := func(img []byte) (bool, error) {
+		if len(img) == 0 {
+			timestamp = 0
+			return false, nil
+		}
+		s, err := parseTimestamp(img)
+		if err != nil {
+			return false, err
+		}
+		timestamp = s
+		return s != 0, nil
+	}
+	if err = retrieveBlackTop(directory+img, camIDCb, timestampCb); err != nil {
+		return
+	}
+	return
+}
 func ParseImages(directory string, imgs []string) ([]string, []int64, error) {
 	camIDs := make([]string, 0, len(imgs))
 	timestamps := make([]int64, 0, len(imgs))

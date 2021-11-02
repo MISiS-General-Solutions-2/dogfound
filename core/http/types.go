@@ -1,15 +1,19 @@
 package http
 
-import "dogfound/database"
+import (
+	"dogfound/database"
+	"time"
+)
 
-type Config struct {
-	Address string
-}
 type CategorizationResponse struct {
-	database.SetClassesRequest `json:",inline"`
-	Vis                        database.Visualization `json:"vis"`
+	database.ClassInfo `json:",inline"`
+	Vis                database.Visualization `json:"vis"`
 }
 type ImageRequest struct {
-	Dir    string   `json:"dir"`
-	Images []string `json:"imgs"`
+	Image string `json:"image"`
+}
+type Destination struct {
+	Address       string
+	Retries       int
+	RetryInterval time.Duration
 }

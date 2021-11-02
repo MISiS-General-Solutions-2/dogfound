@@ -24,7 +24,8 @@ RUN apt-get update -qq
 RUN apt-get install -y -qq libtesseract-dev libleptonica-dev
 RUN apt-get install -y -qq tesseract-ocr-rus
 
-RUN mkdir -p /opt/dogfound/data/img
+RUN mkdir -p /opt/dogfound/data/img && \
+    mkdir -p /opt/dogfound/data/new_images
 COPY ./data /opt/dogfound/data
 
 COPY ./include/sqlite3 /usr/bin/sqlite3

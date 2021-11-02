@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 from pathlib import Path
+import uvicorn
 
 import detect
 
@@ -9,8 +10,7 @@ app = FastAPI()
 
 
 class Request(BaseModel):
-    dir: str
-    imgs: List[str]
+    image: str
 
 
 class Visualization(BaseModel):
@@ -37,10 +37,7 @@ async def categorize():
 
 @app.post("/api/categorize")
 async def categorize(req: Request):
-    result = []
-    for img in req.imgs:
-        result.append(get_classes(req.dir+img))
-    return result
+    return get_classes(req.image)
 
 
 def get_classes(file: str) -> Response:
@@ -50,4 +47,9 @@ def get_classes(file: str) -> Response:
                         color=0, tail=0, vis=Visualization(crop=[0, 0, 5, 5], probabilities="in progress"))
 
     response = detect.run_analytics(file, response)
+    print(response)
     return response
+
+
+if __name__ == "__main__":
+    uvicorn.run("server:app", host="0.0.0.0", port=6002)
