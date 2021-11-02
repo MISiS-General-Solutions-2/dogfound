@@ -2,13 +2,18 @@ FROM vlasovanton/gocv:latest as build
 
 WORKDIR /app/
 
-COPY . ./
-
 RUN apt-get update -qq
 RUN apt-get install -y -qq libtesseract-dev libleptonica-dev
 RUN apt-get install -y -qq tesseract-ocr-rus
 
+COPY ./include ./include
 RUN mkdir libs;cd include/gocr-0.52/src; make lib.a; mv libPgm2asc.a /app/libs/
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . ./
 
 RUN go build -o core .
 

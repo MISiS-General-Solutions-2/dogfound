@@ -189,7 +189,7 @@ func ValidateRequest(req map[string]interface{}) error {
 	return nil
 }
 
-func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
+func constructImageRequest(req map[string]interface{}) (string, error) {
 	b := strings.Builder{}
 	b.WriteString(`SELECT filename,registries.address,images.cam_id,lat,lon,timestamp FROM images LEFT OUTER JOIN registries
 		ON images.cam_id = registries.cam_id WHERE `)
@@ -220,11 +220,25 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 			b.WriteString(strconv.Itoa(int(v.(float64))))
 			b.WriteRune(')')
 		default:
-			return nil, fmt.Errorf("unexpected field %v", k)
+			return "", fmt.Errorf("unexpected field %v", k)
 		}
 		first = false
 	}
-	sqlStmt := b.String()
+	return b.String(), nil
+}
+func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
+	var sqlStmt string
+	if len(req) == 0 {
+		sqlStmt = `SELECT filename,registries.address,images.cam_id,lat,lon,timestamp FROM images LEFT OUTER JOIN registries
+		ON images.cam_id = registries.cam_id`
+	} else {
+		var err error
+		sqlStmt, err = constructImageRequest(req)
+		if err != nil {
+			return nil, err
+		}
+	}
+	fmt.Println(sqlStmt)
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
 		return nil, err
@@ -246,6 +260,7 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 		}
 		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, [2]float64{sr.Lon.Float64, sr.Lat.Float64}, Visualization{}})
 	}
+	fmt.Println(len(res))
 	err = rows.Err()
 	if err != nil {
 		return nil, err

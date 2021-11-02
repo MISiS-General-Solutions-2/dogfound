@@ -10,7 +10,7 @@ import (
 
 var (
 	nnServiceCfg = Config{
-		Address: "localhost:6002",
+		Address: "neural_network:80",
 	}
 )
 
