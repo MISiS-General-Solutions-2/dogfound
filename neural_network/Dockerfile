@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.3
 FROM python:3.9.7-buster
 
 RUN apt update && \
@@ -6,7 +7,8 @@ RUN apt update && \
 WORKDIR /app/
 
 COPY ./requirements.txt ./
-RUN python3 -m pip install -r requirements.txt
+RUN --mount=type=cache,target=~/.cache\
+    python3 -m pip install -r requirements.txt
 
 COPY . ./
 

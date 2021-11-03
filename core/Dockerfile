@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.3
 FROM vlasovanton/gocv:latest as environment
 
 RUN apt-get update -qq
@@ -20,7 +21,8 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o core .
+RUN --mount=type=cache,target=~/.cache\
+    go build -o core .
 
 FROM environment as exec
 COPY --from=build /app/core /opt/dogfound/
