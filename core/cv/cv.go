@@ -1,6 +1,7 @@
 package cv
 
 import (
+	"errors"
 	"fmt"
 	"image"
 
@@ -30,6 +31,7 @@ func ParseImage(img string) (camID string, timestamp int64, err error) {
 		var imgBytes []byte
 		imgBytes, err = getProcessedRegionAsBytes(imgMat, rois[i], addApxib[i], formats[i])
 		if err != nil {
+			fmt.Println(img)
 			return
 		}
 		if len(imgBytes) == 0 {
@@ -79,8 +81,7 @@ func getProcessedRegionAsBytes(img gocv.Mat, crop image.Rectangle, addApxib bool
 
 	cropped := getCroppedPart(img, crop)
 	if cropped == nil {
-		fmt.Println("could not crop")
-		return nil, nil
+		return nil, errors.New("could not crop image")
 	}
 	if !isRegionMedianBelowThresh(*cropped, 10) {
 		return nil, nil

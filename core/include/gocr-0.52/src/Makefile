@@ -31,7 +31,6 @@ LIBOBJS=pgm2asc.o \
 	remove.o \
 	pnm.o \
 	pcx.o \
-	progress.o \
 	job.o \
 	gocr.o
 
