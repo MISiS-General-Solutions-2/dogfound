@@ -11,8 +11,8 @@ import (
 func main() {
 
 	// will get from command line
-	// classificatorAddress := "neural_network:6002"
-	classificatorAddress := "localhost:6002"
+	classificatorAddress := "neural_network:6002"
+	//classificatorAddress := "localhost:6002"
 	imageSourceDirectory := database.DataPath + "new_images/"
 
 	close := database.Connect()
