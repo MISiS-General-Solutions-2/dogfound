@@ -58,9 +58,15 @@ func (r *processor) addNewImages() error {
 	if len(imgs) == 0 {
 		return nil
 	}
-	total = len(imgs)
-	fmt.Println("total: ", total)
-	r.t1 = time.Now()
+
+	r.mu.Lock()
+	if len(r.statuses) == 0 {
+		total = len(imgs)
+		fmt.Println("total: ", total)
+		r.t1 = time.Now()
+	}
+	r.mu.Unlock()
+
 	for _, img := range imgs {
 		if r.shouldEnqueueImage(img) {
 			r.inputChannel <- img

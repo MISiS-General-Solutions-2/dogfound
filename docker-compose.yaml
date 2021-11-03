@@ -30,10 +30,10 @@ services:
       context: ./neural_network
       dockerfile: Dockerfile
     ports:
-          # debug
-          - "6002:6002"
+      # debug
+      - "6002:6002"
     volumes:
-          - data:/opt/dogfound/data
+      - data:/opt/dogfound/data
   front:
     build:
       context: ./front

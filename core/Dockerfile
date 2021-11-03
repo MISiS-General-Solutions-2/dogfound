@@ -32,4 +32,4 @@ RUN mkdir -p /opt/dogfound/data/img && \
     mkdir -p /opt/dogfound/data/new_images
 COPY ./data /opt/dogfound/data
 
-CMD ["/opt/dogfound/core","8"]
+CMD ["/opt/dogfound/core", "neural_network:6002","5","4"]
