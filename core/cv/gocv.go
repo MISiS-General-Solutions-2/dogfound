@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"bytes"
 	"dogfound/database"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"regexp"
@@ -36,19 +35,18 @@ func cParseCamID(img []byte, args []string) string {
 
 	cres := C.parse_pgm(C.int(len(img)), (*C.char)(unsafe.Pointer(&img[0])), C.int(len(args)), &argv[0])
 	res := C.GoString(cres)
-	//C.free(unsafe.Pointer(cres))
+	C.free(unsafe.Pointer(cres))
 	return res
 }
-func parseCamID(img []byte) (string, error) {
+func parseCamID(img []byte) string {
 	out := cParseCamID(img, []string{"gocv", "-C", "0-9a-zA-Z"})
-	return parseRecognizedCamID(strings.NewReader(out)), nil
+	return parseRecognizedCamID(strings.NewReader(out))
 }
 func parseRecognizedCamID(r io.Reader) string {
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return ""
 	}
-	n := len(b)
 
 	scan := bufio.NewScanner(bytes.NewReader(b))
 	for {
@@ -59,9 +57,6 @@ func parseRecognizedCamID(r io.Reader) string {
 		if !scan.Scan() {
 			break
 		}
-	}
-	if n != 0 {
-		fmt.Printf("%s\n", b)
 	}
 	return ""
 }

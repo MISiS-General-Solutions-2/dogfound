@@ -380,31 +380,21 @@ char *parse_pgm(int img_data_len, char *image, int argn, char *argv[]) {
   job = &job1;
 
   setvbuf(stdout, (char *)NULL, _IONBF, 0); /* not buffered */
-  fprintf(stdout, "setvbuf\n");
 
-  job_init(job); /* init cfg and db */
-  fprintf(stdout, "job init\n");
-
+  job_init(job);       /* init cfg and db */
   job_init_image(job); /* single image */
-  fprintf(stdout, "job_init_image\n");
 
   populateJobWithPgm(job, img_data_len, image, argn, argv);
-  fprintf(stdout, "populateJobWithPgm\n");
 
   mark_start(job);
-  fprintf(stdout, "mark_start\n");
 
   /* call main loop */
   pgm2asc(job);
-  fprintf(stdout, "pgm2asc\n");
   mark_end(job);
-  fprintf(stdout, "markend\n");
 
   char *result = get_concatenated_textlines_and_free_textlines(job);
-  fprintf(stdout, "get_concatenated_textlines_and_free_textlines\n");
 
   job_free_data_but_not_image(job);
-  fprintf(stdout, "job_free_data_but_not_image\n");
   return result;
 }
 void populateJobWithPgm(job_t *job, int datalen, char *data, int argn,

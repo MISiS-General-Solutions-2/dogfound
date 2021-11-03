@@ -22,16 +22,16 @@ var months = map[string]string{
 	"дек.":  "12",
 }
 
-func parseTimestamp(img []byte) (int64, error) {
+func parseTimestamp(img []byte) int64 {
 	client := gosseract.NewClient()
 	defer client.Close()
 	client.SetImageFromBytes(img)
 	client.Languages = []string{"rus"}
 	text, err := client.Text()
 	if err != nil {
-		return 0, err
+		panic(err)
 	}
-	return parseRecognizedTimestamp(text), nil
+	return parseRecognizedTimestamp(text)
 }
 func parseRecognizedTimestamp(s string) int64 {
 	if s == "" {
