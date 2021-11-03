@@ -9,13 +9,13 @@
      in ocr0_shared structure.
  *  ------------------------------------------------------------  */
 
-typedef struct ocr0_shared {  /* shared variables and properties */
+typedef struct ocr0_shared { /* shared variables and properties */
 
-  struct box *box1;  /* box in whole image */
-  pix *bp;           /* extracted temporarly box, cleaned */
-  int cs;            /* global threshold value (gray level) */
+  struct box *box1; /* box in whole image */
+  pix *bp;          /* extracted temporarly box, cleaned */
+  int cs;           /* global threshold value (gray level) */
 
-                      /* ToDo: or MACROS: X0 = box1->x0 */
+  /* ToDo: or MACROS: X0 = box1->x0 */
   int x0, x1, y0, y1; /* box coordinates related to box1 */
   int dx, dy;         /* size of box */
   int hchar, gchar;   /* relation to m1..m4 */
@@ -25,31 +25,31 @@ typedef struct ocr0_shared {  /* shared variables and properties */
 } ocr0_shared_t;
 
 /* tests for umlaut */
-int testumlaut(struct box *box1, int cs, int m, wchar_t *modifier);
+int testumlaut(struct box *box1, int cs, int m, wchar_t *modifier, job_t *job);
 /* detect chars */
-wchar_t ocr0(struct box *box1, pix  *b, int cs);
+wchar_t ocr0(struct box *box1, pix *b, int cs, job_t *job);
 /* detect numbers */
-wchar_t ocr0n(ocr0_shared_t *sdata);
+wchar_t ocr0n(ocr0_shared_t *sdata, job_t *job);
 
 /* Visual Studio for Windows (2010) does not like static inline func() */
 /* static function is not visible outside file (translation unit) */
 /* static int sq(x) produces not-used-warnings in pgm2asc.c, old=inline */
 /* inline only generates multiple-definition-link-errors */
-//inline int sq(int x) { return x*x; } /* square, 2018-09 static inline */
-#define sq(x) ((x)*(x))  /* square of x = x^2  2018-09 */
+// inline int sq(int x) { return x*x; } /* square, 2018-09 static inline */
+#define sq(x) ((x) * (x)) /* square of x = x^2  2018-09 */
 
 /*
  * go from vector j1 to vector j2 and measure maximum deviation of
  *   the steps from the line connecting j1 and j2
  * return the squared maximum distance
  *   in units of the box size times 1024
- */ 
-int line_deviation( struct box *box1, int j1, int j2 );
+ */
+int line_deviation(struct box *box1, int j1, int j2);
 
 /*
- * search vectors between j1 and j2 for nearest point a to point r 
+ * search vectors between j1 and j2 for nearest point a to point r
  * example:
- * 
+ *
  *     r-> $$...$$   $ - mark vectors
  *         @@$..@@   @ - black pixels
  *         @@$..@@   . - white pixels
@@ -59,10 +59,11 @@ int line_deviation( struct box *box1, int j1, int j2 );
  *         @@..$@@
  *         @@..$@@
  *  j1 --> $$...$$ <-- j2
- *     
+ *
  * ToDo: vector aa[5] = {rx,ry,x,y,d^2,idx} statt rx,ry?
  *          j1 and j2 must be in the same frame
  *          return aa?
  */
-int nearest_frame_vector( struct box *box1, int j1, int j2, int rx, int ry);
+int nearest_frame_vector(struct box *box1, int j1, int j2, int rx, int ry,
+                         job_t *job);
 #endif

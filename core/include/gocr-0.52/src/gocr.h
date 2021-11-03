@@ -195,10 +195,6 @@ void job_init_image(job_t *job); /* for each of a multiimage */
 void job_free_image(job_t *job); /* for each of a multiimage */
 void job_free_data_but_not_image(job_t *job);
 
-/* FIXME jb: remove JOB; 2010-09-25 renamed to OCR_JOB */
-/*  as a first step OCR_JOB will be remain in DO_DEBUG mode only */
-extern job_t *OCR_JOB;
-
 /* calculate the overlapp of the line (0-1) with black points
  * by rekursiv bisection
  * (evl. Fehlertoleranz mit pixel in Umgebung dx,dy suchen) (umschaltbar) ???
@@ -208,19 +204,22 @@ extern job_t *OCR_JOB;
 
 /* gerade y=dy/dx*x+b, implizit d=F(x,y)=dy*x-dx*y+b*dx=0
  * incrementell y(i+1)=m*(x(i)+1)+b, F(x+1,y+1)=f(F(x,y))  */
-int get_line(int x0, int y0, int x1, int y1, pix *p, int cs, int ret);
-int get_line2(int x0, int y0, int x1, int y1, pix *p, int cs, int ret);
+int get_line(int x0, int y0, int x1, int y1, pix *p, int cs, int ret,
+             job_t *job);
+int get_line2(int x0, int y0, int x1, int y1, pix *p, int cs, int ret,
+              job_t *job);
 
 /* look for white 0x02 or black 0x01 dots (0x03 = white+black) */
-char get_bw(int x0, int x1, int y0, int y1, pix *p, int cs, int mask);
+char get_bw(int x0, int x1, int y0, int y1, pix *p, int cs, int mask,
+            job_t *job);
 
 /* look for black crossing a line x0,y0,x1,y1
  * follow line and count crossings ([white]-black-transitions)
  */
-int num_cross(int x0, int x1, int y0, int y1, pix *p,
-              int cs); /* 1/8 tolerance */
-int num_cross_fine(int x0, int x1, int y0, int y1, pix *p,
-                   int cs); /* 1/32 tolerance */
+int num_cross(int x0, int x1, int y0, int y1, pix *p, int cs,
+              job_t *job); /* 1/8 tolerance */
+int num_cross_fine(int x0, int x1, int y0, int y1, pix *p, int cs,
+                   job_t *job); /* 1/32 tolerance */
 
 /* memory allocation with error checking */
 void *xrealloc(void *ptr, size_t size);
@@ -228,7 +227,8 @@ void *xrealloc(void *ptr, size_t size);
 /* follow a line x0,y0,x1,y1 recording locations of transitions,
  * return count of transitions
  */
-int follow_path(int x0, int x1, int y0, int y1, pix *p, int cs, path_t *path);
+int follow_path(int x0, int x1, int y0, int y1, pix *p, int cs, path_t *path,
+                job_t *job);
 
 /* -------------------------------------------------------------
  * mark edge-points
@@ -248,15 +248,15 @@ int follow_path(int x0, int x1, int y0, int y1, pix *p, int cs, path_t *path);
  * is this the right place for declaration?
  */
 void turmite(pix *p, int *x, int *y, int x0, int x1, int y0, int y1, int cs,
-             int rw, int rb);
+             int rw, int rb, job_t *job);
 
 /* test if points are connected via t-pixel (rekursiv!) */
-int joined(pix *p, int x0, int y0, int x1, int y1, int cs);
+int joined(pix *p, int x0, int y0, int x1, int y1, int cs, job_t *job);
 
 /* move from x,y to direction r until pixel or l steps
  * return number of steps
  */
-int loop(pix *p, int x, int y, int l, int cs, int col, DIRECTION r);
+int loop(pix *p, int x, int y, int l, int cs, int col, DIRECTION r, job_t *job);
 
 #define MAX_HOLES 3
 typedef struct list_holes {
@@ -269,25 +269,28 @@ typedef struct list_holes {
 /* look for white holes surrounded by black points
  * at moment white point with black in all four directions
  */
-int num_hole(int x0, int x1, int y0, int y1, pix *p, int cs, holes_t *holes);
+int num_hole(int x0, int x1, int y0, int y1, pix *p, int cs, holes_t *holes,
+             job_t *job);
 
 /* count for black nonconnected objects --- used for i,auml,ouml,etc. */
-int num_obj(int x0, int x1, int y0, int y1, pix *p, int cs);
+int num_obj(int x0, int x1, int y0, int y1, pix *p, int cs, job_t *job);
 
 int distance(pix *p1, struct box *box1, /* box-frame */
-             pix *p2, struct box *box2, int cs);
+             pix *p2, struct box *box2, int cs, job_t *job);
 
 /* call the OCR engine ;) */
 /* char whatletter(struct box *box1,int cs); */
 
 /* declared in pixel.c */
 /* getpixel() was pixel() but it may collide with netpnm pixel declaration */
-int getpixel(pix *p, int x, int y);
+int getpixel(pix *p, int x, int y, job_t *job);
 int marked(pix *p, int x, int y);
 void put(pix *p, int x, int y, int ia, int io);
 
 int lib_main(int argn, char *argv[]);
+
 int test_sum(int a, int b);
+char *parse_pgm(int img_data_len, char *image, int argn, char *argv[]);
 
 /* } */ /* extern C */
 #endif  /* __GOCR_H__ */

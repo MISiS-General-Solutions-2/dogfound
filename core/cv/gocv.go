@@ -36,7 +36,7 @@ func cParseCamID(img []byte, args []string) string {
 
 	cres := C.parse_pgm(C.int(len(img)), (*C.char)(unsafe.Pointer(&img[0])), C.int(len(args)), &argv[0])
 	res := C.GoString(cres)
-	C.free(unsafe.Pointer(cres))
+	//C.free(unsafe.Pointer(cres))
 	return res
 }
 func parseCamID(img []byte) (string, error) {

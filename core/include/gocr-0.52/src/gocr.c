@@ -41,7 +41,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "pcx.h"
 #include "pgm2asc.h"
 #include "pnm.h"
-#include "progress.h"
 #include "version.h" /* include/version.h version_string + release_string */
 
 /* v+=2 exit, v+=1 add_how_to_get_help */
@@ -373,36 +372,39 @@ char *get_concatenated_textlines_and_free_textlines(job_t *job) {
   free_textlines(&(job->res.linelist));
   return result;
 }
-/* FIXME jb: remove JOB; renamed to OCR_JOB 2010-09-26 */
-job_t *OCR_JOB;
-
-/* -------------------------------------------------------------
-// ------   MAIN - replace this by your own aplication!
-// ------------------------------------------------------------- */
 
 int test_sum(int a, int b) { return a + b; }
 
 char *parse_pgm(int img_data_len, char *image, int argn, char *argv[]) {
-  job_t job1, *job; /* fixme, dont want global variables for lib */
-  job = OCR_JOB = &job1;
+  job_t job1, *job;
+  job = &job1;
 
   setvbuf(stdout, (char *)NULL, _IONBF, 0); /* not buffered */
+  fprintf(stdout, "setvbuf\n");
 
   job_init(job); /* init cfg and db */
+  fprintf(stdout, "job init\n");
 
   job_init_image(job); /* single image */
+  fprintf(stdout, "job_init_image\n");
 
   populateJobWithPgm(job, img_data_len, image, argn, argv);
+  fprintf(stdout, "populateJobWithPgm\n");
 
   mark_start(job);
+  fprintf(stdout, "mark_start\n");
 
   /* call main loop */
   pgm2asc(job);
+  fprintf(stdout, "pgm2asc\n");
   mark_end(job);
+  fprintf(stdout, "markend\n");
 
   char *result = get_concatenated_textlines_and_free_textlines(job);
+  fprintf(stdout, "get_concatenated_textlines_and_free_textlines\n");
 
   job_free_data_but_not_image(job);
+  fprintf(stdout, "job_free_data_but_not_image\n");
   return result;
 }
 void populateJobWithPgm(job_t *job, int datalen, char *data, int argn,
@@ -413,8 +415,8 @@ void populateJobWithPgm(job_t *job, int datalen, char *data, int argn,
 
 int lib_main(int argn, char *argv[]) {
   int multipnm = 1;
-  job_t job1, *job; /* fixme, dont want global variables for lib */
-  job = OCR_JOB = &job1;
+  job_t job1, *job;
+  job = &job1;
 
   setvbuf(stdout, (char *)NULL, _IONBF, 0); /* not buffered */
 

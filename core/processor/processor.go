@@ -30,7 +30,6 @@ type processor struct {
 }
 
 func StartProcessor(cfg *Config) error {
-
 	proc := processor{Config: *cfg}
 	proc.statuses = make(map[string]struct{})
 	proc.inputChannel = make(chan string, 100)
@@ -92,8 +91,8 @@ func (r *processor) dropImage(image string) {
 func (r *processor) process(image string) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("panic %v processing image %v", err, image)
-			log.Println(string(debug.Stack()))
+			fmt.Printf("panic %v processing image %v", err, image)
+			fmt.Println(string(debug.Stack()))
 		}
 	}()
 

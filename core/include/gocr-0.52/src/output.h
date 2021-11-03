@@ -17,21 +17,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
  see README for EMAIL-address */
- 
+
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
-#include <stdlib.h>
 #include <stdio.h>
-#include "pnm.h"
+#include <stdlib.h>
+
 #include "gocr.h"
 #include "list.h"
+#include "pnm.h"
 
-void out_b(struct box *px, pix *b, int x0, int y0, int dx, int dy, int cs );
-void out_x(struct box *px);
-void out_x2(struct box *box1,struct box *box2);
+void out_b(struct box *px, pix *b, int x0, int y0, int dx, int dy, int cs,
+           job_t *job);
+void out_x(struct box *px, job_t *job);
+void out_x2(struct box *box1, struct box *box2, job_t *job);
 int output_list(job_t *job);
 int debug_img(char *fname, struct job_s *job, int opt);
-
 
 #endif

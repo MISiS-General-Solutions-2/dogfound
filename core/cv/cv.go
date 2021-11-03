@@ -1,6 +1,7 @@
 package cv
 
 import (
+	"fmt"
 	"image"
 	"log"
 
@@ -13,6 +14,7 @@ func ParseImage(directory string, img string) (camID string, timestamp int64, er
 			camID = ""
 			return false, nil
 		}
+		fmt.Println(len(img))
 		s, err := parseCamID(img)
 		if err != nil {
 			return false, err
@@ -37,39 +39,19 @@ func ParseImage(directory string, img string) (camID string, timestamp int64, er
 	}
 	return
 }
-func ParseImages(directory string, imgs []string) ([]string, []int64, error) {
-	camIDs := make([]string, 0, len(imgs))
-	timestamps := make([]int64, 0, len(imgs))
-	camIDCb := func(img []byte) (bool, error) {
-		if len(img) == 0 {
-			camIDs = append(camIDs, "")
-			return false, nil
-		}
-		s, err := parseCamID(img)
-		if err != nil {
-			return false, err
-		}
-		camIDs = append(camIDs, s)
-		return s != "", nil
+func getCroppedPart(img *gocv.Mat, crop image.Rectangle) *gocv.Mat {
+	// drop too small images
+	if img.Cols() < crop.Max.X || img.Rows() < crop.Max.Y {
+		return nil
 	}
-	timestampCb := func(img []byte) (bool, error) {
-		if len(img) == 0 {
-			timestamps = append(timestamps, 0)
-			return false, nil
-		}
-		s, err := parseTimestamp(img)
-		if err != nil {
-			return false, err
-		}
-		timestamps = append(timestamps, s)
-		return s != 0, nil
-	}
-	for _, img := range imgs {
-		if err := retrieveBlackTop(directory+img, camIDCb, timestampCb); err != nil {
-			return nil, nil, err
-		}
-	}
-	return camIDs, timestamps, nil
+
+	// select region of interest
+	cropped := img.Region(crop)
+	return &cropped
+}
+func isRegionMedianBelowThresh(img *gocv.Mat, thresh int) bool {
+	shouldBeBlack := img.ColRange(0, 5)
+	return int(shouldBeBlack.Mean().Val1) <= thresh
 }
 
 func cropAndPreProcess(img *gocv.Mat, crop image.Rectangle, addApxib bool) *gocv.Mat {
@@ -112,34 +94,34 @@ func retrieveBlackTop(file string, camIDCb, timestampCb func([]byte) (bool, erro
 	img := gocv.IMRead(file, gocv.IMReadGrayScale)
 	defer img.Close()
 
-	// camIDRect := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: 240, Y: 18}}
-	timestampRect := image.Rectangle{Min: image.Point{X: 0, Y: 53}, Max: image.Point{X: 240, Y: 64}}
+	camIDRect := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: 240, Y: 18}}
+	// timestampRect := image.Rectangle{Min: image.Point{X: 0, Y: 53}, Max: image.Point{X: 240, Y: 64}}
 
-	// camIDCrop := cropAndPreProcess(&img, camIDRect, true)
-	// if camIDCrop != nil {
-	// 	buf, err := gocv.IMEncode(".pgm", *camIDCrop)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	if _, err := camIDCb(buf.GetBytes()); err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	camIDCb(nil)
-	// }
-
-	timestampCrop := cropAndPreProcess(&img, timestampRect, false)
-	if timestampCrop != nil {
-		buf, err := gocv.IMEncode(".png", *timestampCrop)
+	camIDCrop := cropAndPreProcess(&img, camIDRect, true)
+	if camIDCrop != nil {
+		buf, err := gocv.IMEncode(".pgm", *camIDCrop)
 		if err != nil {
 			return err
 		}
-		if _, err := timestampCb(buf.GetBytes()); err != nil {
+		if _, err := camIDCb(buf.GetBytes()); err != nil {
 			return err
 		}
 	} else {
-		timestampCb(nil)
+		camIDCb(nil)
 	}
+
+	// timestampCrop := cropAndPreProcess(&img, timestampRect, false)
+	// if timestampCrop != nil {
+	// 	buf, err := gocv.IMEncode(".png", *timestampCrop)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if _, err := timestampCb(buf.GetBytes()); err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	timestampCb(nil)
+	// }
 
 	return nil
 }

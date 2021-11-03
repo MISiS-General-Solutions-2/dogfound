@@ -9,7 +9,7 @@ WORKDIR /app/
 RUN git clone https://github.com/ultralytics/yolov5
 
 COPY ./requirements.txt ./
-RUN --mount=type=cache,target=~/.cache\
+RUN --mount=type=cache,mode=0777,target=~/.cache\
     python3 -m pip install -r requirements.txt
 
 COPY . ./

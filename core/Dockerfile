@@ -22,7 +22,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN --mount=type=cache,target=~/.cache\
+RUN --mount=type=cache,mode=0777,target=~/.cache\
     go build -o core .
 
 FROM environment as exec
