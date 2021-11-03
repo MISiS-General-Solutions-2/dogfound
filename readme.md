@@ -9,8 +9,9 @@ docker-compose
 
 Скачать содержимое репозитория
 ```git clone https://github.com/MISiS-General-Solutions-2/dogfound```
-Задать переменную окружения DOCKER_BUILDKIT=1. Например, это можно сделать коммандой
+Для использования BuildKit задать переменные окружения DOCKER_BUILDKIT=1 и COMPOSE_DOCKER_CLI_BUILD=1. Например, на системе linux, это можно сделать коммандами
 ```export DOCKER_BUILDKIT=1```
+```export COMPOSE_DOCKER_CLI_BUILD=1```
 **Изображения из папки data/new_images будут классифицированы и добавлены в базу данных, если поместить их туда перед сборкой контейнера.**
 
 Перейти в директорию с проекта
