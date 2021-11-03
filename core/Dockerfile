@@ -22,7 +22,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN --mount=type=cache,target=~/.cache/go-build\
+RUN --mount=type=cache,target=~/.cache\
     go build -o core .
 
 FROM environment as exec
@@ -32,4 +32,4 @@ RUN mkdir -p /opt/dogfound/data/img && \
     mkdir -p /opt/dogfound/data/new_images
 COPY ./data /opt/dogfound/data
 
-CMD ["/opt/dogfound/core"]
+CMD ["/opt/dogfound/core","8"]

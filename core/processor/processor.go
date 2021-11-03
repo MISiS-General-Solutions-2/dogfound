@@ -5,11 +5,17 @@ import (
 	"dogfound/database"
 	"dogfound/errors"
 	"dogfound/http"
+	"fmt"
 	"log"
 	"os"
 	"runtime/debug"
 	"sync"
 	"time"
+)
+
+var (
+	counter = 0
+	total   = 0
 )
 
 type processor struct {
@@ -19,6 +25,8 @@ type processor struct {
 
 	statuses map[string]struct{}
 	mu       sync.Mutex
+
+	t1 time.Time
 }
 
 func StartProcessor(cfg *Config) error {
@@ -51,6 +59,9 @@ func (r *processor) addNewImages() error {
 	if len(imgs) == 0 {
 		return nil
 	}
+	total = len(imgs)
+	fmt.Println("total: ", total)
+	r.t1 = time.Now()
 	for _, img := range imgs {
 		if r.shouldEnqueueImage(img) {
 			r.inputChannel <- img
@@ -106,6 +117,11 @@ func (r *processor) process(image string) {
 		return
 	}
 	r.saveProcessedImage(image, camID, timestamp, classInfo)
+	counter += 1
+	fmt.Println(counter)
+	if counter == total {
+		fmt.Println("finished in ", time.Since(r.t1).Seconds())
+	}
 }
 func (r *processor) saveProcessedImage(image, camID string, timestamp int64, classInfo database.ClassInfo) {
 	record := database.ImagesRecord{

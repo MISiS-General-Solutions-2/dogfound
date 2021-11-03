@@ -112,21 +112,21 @@ func retrieveBlackTop(file string, camIDCb, timestampCb func([]byte) (bool, erro
 	img := gocv.IMRead(file, gocv.IMReadGrayScale)
 	defer img.Close()
 
-	camIDRect := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: 240, Y: 18}}
+	// camIDRect := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: 240, Y: 18}}
 	timestampRect := image.Rectangle{Min: image.Point{X: 0, Y: 53}, Max: image.Point{X: 240, Y: 64}}
 
-	camIDCrop := cropAndPreProcess(&img, camIDRect, true)
-	if camIDCrop != nil {
-		buf, err := gocv.IMEncode(".pgm", *camIDCrop)
-		if err != nil {
-			return err
-		}
-		if _, err := camIDCb(buf.GetBytes()); err != nil {
-			return err
-		}
-	} else {
-		camIDCb(nil)
-	}
+	// camIDCrop := cropAndPreProcess(&img, camIDRect, true)
+	// if camIDCrop != nil {
+	// 	buf, err := gocv.IMEncode(".pgm", *camIDCrop)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if _, err := camIDCb(buf.GetBytes()); err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	camIDCb(nil)
+	// }
 
 	timestampCrop := cropAndPreProcess(&img, timestampRect, false)
 	if timestampCrop != nil {
