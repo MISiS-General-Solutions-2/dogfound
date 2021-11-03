@@ -227,7 +227,6 @@ static void process_arguments(job_t *job, int argn, char *argv[]) {
           job->cfg.only_numbers = atoi(s1);
           break;
         case 'x': /* initialize progress output s1=fname */
-          ini_progress(s1);
           break;
         case 'a': /* set certainty */
           job->cfg.certainty = atoi(s1);
