@@ -12,4 +12,6 @@ RUN --mount=type=cache,target=~/.cache\
 
 COPY . ./
 
+RUN git clone https://github.com/ultralytics/yolov5
+
 CMD [ "uvicorn", "server:app","--host", "0.0.0.0", "--port", "6002" ]

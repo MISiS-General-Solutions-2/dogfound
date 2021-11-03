@@ -4,6 +4,7 @@ FROM vlasovanton/gocv:latest as environment
 RUN apt-get update -qq
 RUN apt-get install -y -qq libtesseract-dev libleptonica-dev
 RUN apt-get install -y -qq tesseract-ocr-rus
+RUN apt-get install -y sqlite3 libsqlite3-dev
 
 FROM environment as build
 
@@ -21,7 +22,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN --mount=type=cache,target=~/.cache\
+RUN --mount=type=cache,target=~/.cache/go-build\
     go build -o core .
 
 FROM environment as exec
@@ -30,7 +31,5 @@ COPY --from=build /app/core /opt/dogfound/
 RUN mkdir -p /opt/dogfound/data/img && \
     mkdir -p /opt/dogfound/data/new_images
 COPY ./data /opt/dogfound/data
-
-COPY ./include/sqlite3 /usr/bin/sqlite3
 
 CMD ["/opt/dogfound/core"]
