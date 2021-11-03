@@ -4,6 +4,7 @@ import Header from "../header-component/header";
 import MapComponent from "../map-component/map";
 import Search from "../search-component/search";
 import './main.css';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:1022";
 
 class Main extends React.Component {
     constructor(props) {
@@ -69,7 +70,7 @@ class Main extends React.Component {
             "tail": option2,
             "timestamp": timestamp,
         }
-        const url = 'http://5.228.244.67:1022/api/image/by-classes'
+        const url = `http://${API_URL}/api/image/by-classes`
         const options = {
             method: 'POST',
             headers: { 'content-type': 'application/json' },

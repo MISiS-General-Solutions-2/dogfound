@@ -1,5 +1,6 @@
 import React from "react";
 import './list.css';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:1022";
 
 export default class ListComponent extends React.Component {
     constructor(props) {
@@ -24,7 +25,7 @@ export default class ListComponent extends React.Component {
                                 <p className="listAddress">
                                     {el.timestamp}
                                 </p>
-                                <img src={"http://5.228.244.67:1022/api/image/" + el.filename} alt="" />
+                                <img src={`http://${API_URL}/api/image/` + el.filename} alt="" />
                             </button>
                         ))
                         : null}

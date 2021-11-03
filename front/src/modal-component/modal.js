@@ -1,5 +1,6 @@
 import React from "react";
 import './modal.css'
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:1022";
 
 export default class ModalComponent extends React.Component {
     constructor(props) {
@@ -11,7 +12,7 @@ export default class ModalComponent extends React.Component {
         return (
             <div className="modalWindow">
                 <button className="closeButton" onClick={action}></button>
-                <img src={"http://5.228.244.67:1022/api/image/" + filename} alt="" />
+                <img src={`http://${API_URL}/api/image/` + filename} alt="" />
             </div>
         )
     }
