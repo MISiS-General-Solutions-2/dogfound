@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1.3
-FROM 1.10.0-cuda11.3-cudnn8-runtime
-
+FROM python:3.9.7-buster
 
 RUN apt update && \
     yes|apt install libgl1-mesa-glx
