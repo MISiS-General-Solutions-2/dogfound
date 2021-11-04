@@ -14,8 +14,8 @@ core/.vscode
 .zip
 
 # Classification
-classificator/data
-weights/
+neural_network/classificator/data
+**/weights
 
 
 
