@@ -7,7 +7,7 @@ import (
 
 type CategorizationResponse struct {
 	database.ClassInfo `json:",inline"`
-	Vis                database.Visualization `json:"vis"`
+	Additional         database.Additional `json:"additional"`
 }
 type ImageRequest struct {
 	Image string `json:"image"`

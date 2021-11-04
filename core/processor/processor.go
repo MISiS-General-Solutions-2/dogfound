@@ -108,8 +108,8 @@ func (r *processor) process(image string) {
 		r.dropImage(image)
 		return
 	}
-	var classInfo database.ClassInfo
-	if classInfo, err = r.GetClassInfo(image); err != nil {
+	var cr http.CategorizationResponse
+	if cr, err = r.GetClassInfo(image); err != nil {
 		if !errors.IsDestinationError(err) {
 			log.Printf("Dropping bad image %v because of error %v\n", image, err)
 			r.dropImage(image)
@@ -121,17 +121,17 @@ func (r *processor) process(image string) {
 		}
 		return
 	}
-	r.saveProcessedImage(image, camID, timestamp, classInfo)
+	r.saveProcessedImage(image, camID, timestamp, cr)
 	counter += 1
 	fmt.Println(counter)
 	if counter == total {
 		fmt.Println("finished in ", time.Since(r.t1).Seconds())
 	}
 }
-func (r *processor) saveProcessedImage(image, camID string, timestamp int64, classInfo database.ClassInfo) {
+func (r *processor) saveProcessedImage(image, camID string, timestamp int64, cr http.CategorizationResponse) {
 	record := database.ImagesRecord{
 		Filename:  image,
-		ClassInfo: classInfo,
+		ClassInfo: cr.ClassInfo,
 		CamID:     camID,
 		TimeStamp: timestamp,
 	}
@@ -143,11 +143,14 @@ func (r *processor) saveProcessedImage(image, camID string, timestamp int64, cla
 	if err := database.AddImage(r.ImageSourceDirectory, record); err != nil {
 		log.Println(err)
 	}
+	if err := database.AddAdditionalData(image, cr.Additional); err != nil {
+		log.Println(err)
+	}
 }
 
-func (r *processor) GetClassInfo(img string) (database.ClassInfo, error) {
+func (r *processor) GetClassInfo(img string) (http.CategorizationResponse, error) {
 	if r.Classificator.Address == "" {
-		return database.ClassInfo{}, nil
+		return http.CategorizationResponse{}, nil
 	}
 	return http.Categorize(r.Classificator, r.ImageSourceDirectory+img)
 }

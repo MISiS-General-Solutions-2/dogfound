@@ -2,13 +2,12 @@ package http
 
 import (
 	"bytes"
-	"dogfound/database"
 	"encoding/json"
 	"net/http"
 	"time"
 )
 
-func Categorize(categorizationServer Destination, img string) (info database.ClassInfo, err error) {
+func Categorize(categorizationServer Destination, img string) (resp CategorizationResponse, err error) {
 	var body []byte
 	body, err = json.Marshal(ImageRequest{Image: img})
 	if err != nil {
@@ -39,7 +38,7 @@ func Categorize(categorizationServer Destination, img string) (info database.Cla
 		return
 	}
 
-	var res database.ClassInfo
+	var res CategorizationResponse
 	if err = json.Unmarshal(respBody, &res); err != nil {
 		return
 	}

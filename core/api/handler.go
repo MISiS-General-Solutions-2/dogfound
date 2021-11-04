@@ -1,7 +1,9 @@
 package api
 
 import (
+	"dogfound/cv"
 	"dogfound/database"
+	"image/color"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +11,17 @@ import (
 
 func getImage(ctx *gin.Context) {
 	name := ctx.Param("name")
-	ctx.File(database.GetImagePath(name))
+	a, err := database.GetAdditionalInfo(name)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	imgWithCrop, err := cv.DrawRect(database.GetImagePath(name), a.Crop, color.RGBA{0, 255, 0, 128}, 2)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	ctx.Data(http.StatusOK, "image/jpeg", imgWithCrop)
 }
 
 func getImagesByFeatures(ctx *gin.Context) {

@@ -43,8 +43,9 @@ type SearchResponse struct {
 	TimeStamp int64      `json:"timestamp"`
 	LonLat    [2]float64 `json:"lonlat"`
 
-	Vis Visualization `json:"visulization"`
+	AdditionalData Additional `json:"additional"`
 }
-type Visualization struct {
+type Additional struct {
+	Crop          [4]int `json:"crop"`
 	Probabilities string `json:"probabilities"`
 }

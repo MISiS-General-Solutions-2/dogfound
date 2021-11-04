@@ -96,7 +96,8 @@ def run_analytics(file_path, response):
                       int(best_dog['ycenter']+best_dog['height']//2),
                       int(best_dog['xcenter']-best_dog['width']//2),
                       int(best_dog['xcenter']+best_dog['width']//2))
-            response.vis.crop = [coords[0], coords[2], coords[1], coords[3]]
+            response.additional.crop = [
+                coords[2], coords[0], coords[3], coords[1]]
             dog_crop = cv_image[coords[0]:coords[1], coords[2]:coords[3]]
             classes = classifier_model(
                 tr_pipe(dog_crop).unsqueeze(0).to(device))

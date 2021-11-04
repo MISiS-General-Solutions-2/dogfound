@@ -8,7 +8,7 @@ import (
 )
 
 //utility to flaten dataset
-func PopulateWithImages(path string) error {
+func populateWithImages(path string) error {
 	reFileName := regexp.MustCompile(`^[^\.].+\.jpg`)
 	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error) error {
@@ -68,7 +68,25 @@ func initDB() {
 		db.Close()
 		panic(err)
 	}
+	AddAdditionalDataTable()
 	if err = populateRegistries(); err != nil {
+		panic(err)
+	}
+}
+func AddAdditionalDataTable() {
+	sqlStmt := `
+	CREATE TABLE IF NOT EXISTS additional
+	(
+		filename TEXT NOT NULL PRIMARY KEY,
+		crop_x0 INTEGER,
+		crop_y0 INTEGER,
+		crop_x1 INTEGER,
+		crop_y1 INTEGER
+	);
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		db.Close()
 		panic(err)
 	}
 }
