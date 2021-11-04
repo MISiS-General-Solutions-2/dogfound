@@ -10,12 +10,6 @@ FROM environment as build
 
 WORKDIR /app/
 
-COPY ./include ./include
-RUN mkdir libs && \
-    cd include/gocr-0.52/src && \
-    make lib.a && \
-    mv libPgm2asc.a /app/libs/
-
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
