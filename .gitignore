@@ -16,6 +16,6 @@ core/.vscode
 # Classification
 neural_network/classificator/data
 **/weights
-
+.idea
 
 
