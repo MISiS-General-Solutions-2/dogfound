@@ -140,10 +140,10 @@ func (r *processor) saveProcessedImage(image, camID string, timestamp int64, cr 
 		delete(r.statuses, image)
 		r.mu.Unlock()
 	}()
-	if err := database.AddImage(r.ImageSourceDirectory, record); err != nil {
+	if err := database.AddAdditionalData(image, cr.Additional); err != nil {
 		log.Println(err)
 	}
-	if err := database.AddAdditionalData(image, cr.Additional); err != nil {
+	if err := database.AddImage(r.ImageSourceDirectory, record); err != nil {
 		log.Println(err)
 	}
 }
