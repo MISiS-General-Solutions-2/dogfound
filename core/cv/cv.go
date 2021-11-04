@@ -8,10 +8,16 @@ import (
 	"gocv.io/x/gocv"
 )
 
+var imshow bool
+
 func ParseImage(img string) (camID string, timestamp int64, err error) {
+	// imshow = true
+	// if img != "/opt/dogfound/data/new_images/B37.jpg" {
+	// 	return
+	// }
 	functions := []func(img []byte){
 		func(img []byte) {
-			camID = tessParseCamID(img)
+			camID = tessParseCamIDFromBlackTop(img)
 		},
 		func(img []byte) {
 			timestamp = parseTimestamp(img)
@@ -20,12 +26,12 @@ func ParseImage(img string) (camID string, timestamp int64, err error) {
 	// it is assumed number always has same position and pixel sizes
 	rois := []image.Rectangle{
 		{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: 240, Y: 18}},
-		{Min: image.Point{X: 0, Y: 53}, Max: image.Point{X: 240, Y: 64}},
+		{Min: image.Point{X: 0, Y: 47}, Max: image.Point{X: 240, Y: 64}},
 	}
 	imgMat := gocv.IMRead(img, gocv.IMReadGrayScale)
 	defer imgMat.Close()
 
-	for i := range functions {
+	for i := 1; i < 2; i++ {
 		var imgBytes []byte
 		imgBytes, err = getProcessedRegionAsBytes(imgMat, rois[i], ".png")
 		if err != nil {
@@ -50,8 +56,22 @@ func getCroppedPart(img gocv.Mat, crop image.Rectangle) *gocv.Mat {
 	cropped := img.Region(crop)
 	return &cropped
 }
-func isRegionMedianBelowThresh(img gocv.Mat, thresh int) bool {
-	return int(img.Mean().Val1) <= thresh
+func isBlackHeader(img gocv.Mat, blackValueThresh, whiteValueThresh int, blackPartThresh, whitePartThresh float64) bool {
+	blackCount := 0
+	whiteCount := 0
+	for y := 0; y < img.Rows(); y++ {
+		for x := 0; x < img.Cols(); x++ {
+			if int(img.GetUCharAt(y, x)) <= blackValueThresh {
+				blackCount += 1
+			} else if int(img.GetUCharAt(y, x)) >= whiteValueThresh {
+				whiteCount += 1
+			}
+		}
+	}
+	total := float64(img.Cols() * img.Rows())
+	blackPercent := float64(blackCount) / total
+	whitePercent := float64(whiteCount) / total
+	return blackPercent >= blackPartThresh && whitePercent >= whitePartThresh
 }
 func preProcess(img gocv.Mat) gocv.Mat {
 	gocv.Resize(img, &img, image.Point{}, 3, 3, gocv.InterpolationCubic)
@@ -73,10 +93,22 @@ func getProcessedRegionAsBytes(img gocv.Mat, crop image.Rectangle, format string
 	if cropped == nil {
 		return nil, errors.New("could not crop image")
 	}
-	if !isRegionMedianBelowThresh(*cropped, 20) {
+	if imshow {
+		w := gocv.NewWindow("cropped")
+		defer w.Close()
+		w.IMShow(*cropped)
+		w.WaitKey(0)
+	}
+	if !isBlackHeader(*cropped, 5, 250, 0.5, 0.02) {
 		return nil, nil
 	}
 	processed := preProcess(*cropped)
+	if imshow {
+		w := gocv.NewWindow("processed")
+		defer w.Close()
+		w.IMShow(processed)
+		w.WaitKey(0)
+	}
 	buf, err := gocv.IMEncode(gocv.FileExt(format), processed)
 	if err != nil {
 		return nil, err

@@ -104,7 +104,7 @@ func (r *processor) process(image string) {
 
 	camID, timestamp, err := cv.ParseImage(r.ImageSourceDirectory + image)
 	if err != nil {
-		log.Printf("Dropping bad image %v because of error %v\n", image, err)
+		fmt.Printf("Dropping bad image %v because of error %v\n", image, err)
 		r.dropImage(image)
 		return
 	}

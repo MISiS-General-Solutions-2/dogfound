@@ -4,7 +4,7 @@ import (
 	"github.com/otiai10/gosseract"
 )
 
-func tessParseCamID(img []byte) string {
+func tessParseCamIDFromBlackTop(img []byte) string {
 	client := gosseract.NewClient()
 	defer client.Close()
 	client.SetImageFromBytes(img)

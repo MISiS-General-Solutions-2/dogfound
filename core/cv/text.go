@@ -10,9 +10,9 @@ var months = map[string]string{
 	"февр.": "02",
 	"март":  "03",
 	"апр.":  "04",
-	"май":   "05",
-	"июнь":  "06",
-	"июль":  "07",
+	"мая":   "05",
+	"июня":  "06",
+	"июля":  "07",
 	"авг.":  "08",
 	"сент.": "09",
 	"окт.":  "10",
@@ -54,18 +54,27 @@ func fixNumbers(s string) string {
 }
 func replaceCharsWithSimilarNumbers(s string) string {
 	s = strings.ReplaceAll(s, "S", "5")
+	s = strings.ReplaceAll(s, "O", "0")
+	s = strings.ReplaceAll(s, "D", "0")
+	s = strings.ReplaceAll(s, "o", "0")
+	s = strings.ReplaceAll(s, "О", "0")
+	s = strings.ReplaceAll(s, "о", "0")
+	s = strings.ReplaceAll(s, "б", "6")
 	return s
 }
 func parseRecognizedTimestamp(s string) int64 {
 	if s == "" {
 		return 0
 	}
-	s = fixO(s)
+	if idx := strings.IndexByte(s, '\n'); idx != -1 {
+		s = s[:idx]
+	}
 	s = rusMonthToFormat(s)
 	if s == "" {
 		return 0
 	}
-	layout := "02.01.2006:15:04:05"
+	//28 сент. 2021
+	layout := "02.01.2006"
 	t, err := time.Parse(layout, s)
 	if err != nil {
 		return 0
@@ -73,22 +82,16 @@ func parseRecognizedTimestamp(s string) int64 {
 	return t.Unix()
 }
 func rusMonthToFormat(s string) string {
-	//28 сент. 2021, 06:50:42
 	parts := strings.Split(s, " ")
 	if len(parts) != 4 {
 		return ""
 	}
 	b := strings.Builder{}
-	b.WriteString(parts[0])
+	b.WriteString(replaceCharsWithSimilarNumbers(parts[0]))
 	b.WriteRune('.')
 	b.WriteString(months[parts[1]])
 	b.WriteRune('.')
-	b.WriteString(strings.TrimRight(parts[2], ","))
-	b.WriteRune(':')
-	b.WriteString(strings.Trim(parts[3], " "))
+	b.WriteString(strings.TrimRight(replaceCharsWithSimilarNumbers(parts[2]), ","))
 
 	return b.String()
-}
-func fixO(s string) string {
-	return strings.ReplaceAll(s, "O", "0")
 }
