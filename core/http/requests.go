@@ -18,7 +18,7 @@ func Categorize(categorizationServer Destination, img string) (resp Categorizati
 		respBody []byte
 		code     int
 	)
-	for i := 0; i < categorizationServer.Retries; i++ {
+	for i := 0; i < categorizationServer.Retries+1; i++ {
 		var req *http.Request
 		req, err = http.NewRequest("POST", "http://"+categorizationServer.Address+"/api/categorize", bytes.NewReader(body))
 

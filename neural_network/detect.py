@@ -5,7 +5,12 @@ import torch
 from torch import nn
 from torchvision import models
 from torchvision import transforms
+from classificator.dog_type_classificator import _read_dict
 import cv2
+
+file = "./classificator/imagenet_classes.txt"
+
+dogs_indx_list = [i for i in range(151, 276)]
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 sys.path.append('yolov5/')
@@ -57,6 +62,7 @@ weigths = torch.load('models/classifier/resnet.pt',
                      map_location=device)['model']
 classifier_model.load_state_dict(weigths)
 
+breed_model = models.resnet34(pretrained=True)
 
 tr_pipe = transforms.Compose([
     transforms.ToPILImage(),
@@ -99,12 +105,22 @@ def run_analytics(file_path, response):
             response.additional.crop = [
                 coords[2], coords[0], coords[3], coords[1]]
             dog_crop = cv_image[coords[0]:coords[1], coords[2]:coords[3]]
+            # Define tail and color classes
             classes = classifier_model(
                 tr_pipe(dog_crop).unsqueeze(0).to(device))
+            dog_breed = breed_model(tr_pipe(dog_crop).unsqueeze(0).to(device))
             color_cl = classes['color'].argmax().cpu().detach().item() + 1
             tail_cl = classes['tail'].argmax().cpu().detach().item() + 1
             response.color = color_cl
             response.tail = tail_cl
+            # Define dog breed
+            dog_breed_cl = ""
+            label_dict = _read_dict(file)
+            dog_breed_idx = dog_breed.argmax().cpu().detach().item()
+            if dog_breed_idx in dogs_indx_list:
+                dog_breed_cl = label_dict[dog_breed_idx]
+
+            response.breed = dog_breed_cl
             humans = res_df.query("name=='person'")
             if len(humans) > 0:
                 best_dog_coords = best_dog['xcenter'], best_dog['ycenter']

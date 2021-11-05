@@ -60,8 +60,8 @@ func initDB() {
 	(
 		cam_id TEXT NOT NULL PRIMARY KEY,
 		address TEXT NOT NULL,
-		lat REAL NOT NULL,
-		lon REAL NOT NULL
+		lon REAL NOT NULL,
+		lat REAL NOT NULL
 	);
 	`
 	_, err := db.Exec(sqlStmt)
@@ -70,7 +70,7 @@ func initDB() {
 		panic(err)
 	}
 	AddAdditionalDataTable()
-	if err = populateRegistries(); err != nil {
+	if err = PopulateRegistries(); err != nil {
 		panic(err)
 	}
 }
@@ -83,6 +83,21 @@ func AddAdditionalDataTable() {
 		crop_y0 INTEGER,
 		crop_x1 INTEGER,
 		crop_y1 INTEGER
+	);
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		db.Close()
+		panic(err)
+	}
+}
+func AddVolunteerSourced() {
+	sqlStmt := `
+	CREATE TABLE IF NOT EXISTS volunteer_sourced
+	(
+		filename TEXT NOT NULL PRIMARY KEY,
+		lon REAL NOT NULL,
+		lat REAL NOT NULL
 	);
 	`
 	_, err := db.Exec(sqlStmt)

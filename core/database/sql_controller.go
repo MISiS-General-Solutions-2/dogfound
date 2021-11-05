@@ -84,6 +84,27 @@ func AddAdditionalData(image string, data Additional) error {
 	}
 	return nil
 }
+func AddVolunteerSourcedAdditonalData(image string, lonlat [2]float64) error {
+	stmt, err := db.Prepare(`INSERT INTO volunteer_sourced(filename,lon,lat)
+			VALUES(?,?,?)
+		ON CONFLICT(filename)
+		DO UPDATE
+		SET
+			lon=?,
+			lat=?
+		WHERE filename = ?
+		`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(image, lonlat[0], lonlat[1], lonlat[0], lonlat[1], image)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func AddImage(imageSourceDirectory string, record ImagesRecord) error {
 	stmt, err := db.Prepare(`INSERT INTO images(filename,is_animal_there,is_it_a_dog,is_the_owner_there,color,tail,cam_id,timestamp,breed)
 			VALUES(?,?,?,?,?,?,?,?,?)
@@ -186,43 +207,79 @@ func GetAdditionalInfo(image string) (*Additional, error) {
 }
 func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	b := strings.Builder{}
-	b.WriteString(`SELECT images.filename,registries.address,images.cam_id,lat,lon,timestamp,crop_x0,crop_y0,crop_x1,crop_y1,breed FROM images 
+	b.WriteString(`SELECT images.filename,registries.address,images.cam_id,registries.lon,registries.lat,timestamp,crop_x0,crop_y0,crop_x1,crop_y1,breed,volunteer_sourced.lon,volunteer_sourced.lat FROM images 
 		LEFT OUTER JOIN registries 
 		ON images.cam_id = registries.cam_id
-		LEFT OUTER JOIN additional on images.filename=additional.filename`)
+		LEFT OUTER JOIN additional on images.filename=additional.filename
+		LEFT OUTER JOIN volunteer_sourced on images.filename=volunteer_sourced.filename
+		`)
 	if len(req) != 0 {
 		if err := addConditions(&b, req); err != nil {
 			return nil, err
 		}
 	}
-	sqlStmt := b.String()
-	fmt.Println(sqlStmt)
-	rows, err := db.Query(sqlStmt)
+	stmt := b.String()
+	fmt.Println(stmt)
+
+	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
+	return parseSearchResponse(rows)
+}
+func parseSearchResponse(rows *sql.Rows) ([]SearchResponse, error) {
 	defer rows.Close()
 	var res []SearchResponse
 	for rows.Next() {
 		type SearchResponseSQL struct {
-			Filename       string
-			Address        sql.NullString
-			CamID          sql.NullString
-			TimeStamp      sql.NullInt64
-			Lat, Lon       sql.NullFloat64
-			x0, y0, x1, y1 sql.NullInt64
-			Breed          sql.NullString
+			Filename                                 string
+			Address                                  sql.NullString
+			CamID                                    sql.NullString
+			TimeStamp                                sql.NullInt64
+			RegistriesLon, RegistriesLat             sql.NullFloat64
+			x0, y0, x1, y1                           sql.NullInt64
+			Breed                                    sql.NullString
+			VolunteerSourcedLon, VolunteerSourcedLat sql.NullFloat64
 		}
-		var sr SearchResponseSQL
-		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.Lat, &sr.Lon, &sr.TimeStamp, &sr.x0, &sr.y0, &sr.x1, &sr.y1, &sr.Breed)
+		var srSQL SearchResponseSQL
+		err := rows.Scan(&srSQL.Filename, &srSQL.Address, &srSQL.CamID, &srSQL.RegistriesLon, &srSQL.RegistriesLat, &srSQL.TimeStamp, &srSQL.x0, &srSQL.y0, &srSQL.x1, &srSQL.y1, &srSQL.Breed, &srSQL.VolunteerSourcedLon, &srSQL.VolunteerSourcedLat)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, [2]float64{sr.Lon.Float64, sr.Lat.Float64}, sr.Breed.String, Additional{Crop: [4]int{int(sr.x0.Int64), int(sr.y0.Int64), int(sr.x1.Int64), int(sr.y1.Int64)}}})
+		sr := SearchResponse{srSQL.Filename, srSQL.Address.String, srSQL.CamID.String, srSQL.TimeStamp.Int64, [2]float64{srSQL.RegistriesLon.Float64, srSQL.RegistriesLat.Float64}, srSQL.Breed.String, Additional{Crop: [4]int{int(srSQL.x0.Int64), int(srSQL.y0.Int64), int(srSQL.x1.Int64), int(srSQL.y1.Int64)}}}
+		// if this is an image created by volunteer
+		if srSQL.VolunteerSourcedLon.Float64 != 0 && srSQL.VolunteerSourcedLat.Float64 != 0 {
+			sr.LonLat = [2]float64{srSQL.VolunteerSourcedLon.Float64, srSQL.VolunteerSourcedLat.Float64}
+		}
+		res = append(res, sr)
 	}
-	err = rows.Err()
+	err := rows.Err()
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
+}
+func GetImagesWithinFrame(lonLatBox [2][2]float64, t0, t1 int64) ([]SearchResponse, error) {
+	stmt, err := db.Prepare(`SELECT images.filename,registries.address,images.cam_id,registries.lon,registries.lat,timestamp,crop_x0,crop_y0,crop_x1,crop_y1,breed,volunteer_sourced.lon,volunteer_sourced.lat FROM images 
+		LEFT OUTER JOIN registries 
+		ON images.cam_id = registries.cam_id
+		LEFT OUTER JOIN additional on images.filename=additional.filename
+		LEFT OUTER JOIN volunteer_sourced on images.filename=volunteer_sourced.filename
+		WHERE (timestamp=0 OR (timestamp>=? AND timestamp<=?))
+			AND(
+			(registries.lon IS NOT NULL AND registries.lat IS NOT NULL AND registries.lon>=? AND registries.lon<=? AND registries.lat>=? AND registries.lat<=?)
+				OR
+			(volunteer_sourced.lon IS NOT NULL AND volunteer_sourced.lat IS NOT NULL AND volunteer_sourced.lon>=? AND volunteer_sourced.lon<=? AND volunteer_sourced.lat>=? AND volunteer_sourced.lat<=?)
+			)
+		`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(t0, t1, lonLatBox[0][0], lonLatBox[1][0], lonLatBox[0][1], lonLatBox[1][1], lonLatBox[0][0], lonLatBox[1][0], lonLatBox[0][1], lonLatBox[1][1])
+	if err != nil {
+		return nil, err
+	}
+	return parseSearchResponse(rows)
 }
