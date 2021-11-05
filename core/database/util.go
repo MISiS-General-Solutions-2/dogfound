@@ -91,3 +91,18 @@ func AddAdditionalDataTable() {
 		panic(err)
 	}
 }
+func AddVolunteerSourced() {
+	sqlStmt := `
+	CREATE TABLE IF NOT EXISTS volunteer_sourced
+	(
+		filename TEXT NOT NULL PRIMARY KEY,
+		lon REAL NOT NULL,
+		lat REAL NOT NULL
+	);
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		db.Close()
+		panic(err)
+	}
+}

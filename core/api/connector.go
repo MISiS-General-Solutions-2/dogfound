@@ -1,12 +1,13 @@
 package api
 
 import (
+	"dogfound/shared"
 	"errors"
 	"mime/multipart"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func ConnectorListen(addr, dst string) {
@@ -20,12 +21,14 @@ func ConnectorListen(addr, dst string) {
 		}
 
 		files := form.File["file"]
-		if err := checkExtensions(files); err != nil {
+		if err := checkAndTryFixExtensions(files); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
 			return
 		}
 		for _, file := range files {
-			if err := ctx.SaveUploadedFile(file, dst+file.Filename); err != nil {
+			ext := shared.GetExtension(file.Filename)
+			filename := uuid.NewString() + ext
+			if err := ctx.SaveUploadedFile(file, dst+filename); err != nil {
 				ctx.AbortWithError(http.StatusInternalServerError, err)
 				return
 			}
@@ -35,16 +38,14 @@ func ConnectorListen(addr, dst string) {
 
 	router.Run(addr)
 }
-func checkExtensions(files []*multipart.FileHeader) error {
+func checkAndTryFixExtensions(files []*multipart.FileHeader) error {
 	for _, file := range files {
-		if idx := strings.LastIndexByte(file.Filename, '.'); idx != -1 {
-			switch file.Filename[idx:] {
-			case ".jpeg":
-				file.Filename = file.Filename[:idx] + ".jpg"
-			case ".jpg":
-			default:
-				return errors.New("only .jpg format allowed")
-			}
+		switch shared.GetExtension(file.Filename) {
+		case ".jpeg":
+			file.Filename = shared.ChangeExtension(file.Filename, ".jpg")
+		case ".jpg":
+		default:
+			return errors.New("only .jpg format allowed")
 		}
 	}
 	return nil

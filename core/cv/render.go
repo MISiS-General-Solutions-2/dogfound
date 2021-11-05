@@ -1,20 +1,19 @@
 package cv
 
 import (
+	"dogfound/shared"
 	"errors"
 	"image"
 	"image/color"
-	"strings"
 
 	"gocv.io/x/gocv"
 )
 
 func DrawRect(img string, rect [4]int, col color.RGBA, thickness int) ([]byte, error) {
-	idx := strings.LastIndexByte(img, '.')
-	if idx == -1 {
+	ext := shared.GetExtension(img)
+	if ext == "" {
 		return nil, errors.New("file has no extension")
 	}
-	ext := img[idx:]
 	imgMat := gocv.IMRead(img, gocv.IMReadColor)
 	if imgMat.Empty() {
 		return nil, errors.New("empty image")

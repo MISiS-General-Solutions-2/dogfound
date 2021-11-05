@@ -6,9 +6,15 @@ import (
 )
 
 type Config struct {
-	Classificator        http.Destination
-	ImageSourceDirectory string
+	Classificator           http.Destination
+	CameraInputDirectory    string
+	VolunteerInputDirectory string
 
 	NumWorkers     int
 	SampleInterval time.Duration
+}
+type volunteerAddedImage struct {
+	filename  string
+	timestamp int
+	lonlat    [2]float64
 }

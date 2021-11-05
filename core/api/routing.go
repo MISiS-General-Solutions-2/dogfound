@@ -7,10 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var classificatorAddress string
+var (
+	classificatorAddress string
+	volunteerFolder      string
+)
 
-func Serve(classificator string) {
+func Serve(classificator, volunteerImageFolder string) {
 	classificatorAddress = classificator
+	volunteerFolder = volunteerImageFolder
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -26,6 +30,7 @@ func Serve(classificator string) {
 		getImage)
 	api.POST("/image/similar",
 		getSimilar)
+	api.PUT("/image/upload", upload)
 
 	router.Run(":5000")
 }

@@ -4,6 +4,8 @@ import (
 	"dogfound/cv"
 	"dogfound/database"
 	doghttp "dogfound/http"
+	"dogfound/processor"
+	"dogfound/shared"
 	"image/color"
 	"net/http"
 	"os"
@@ -11,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func getImage(ctx *gin.Context) {
@@ -110,4 +113,39 @@ func dbRequestFromCategories(ct doghttp.CategorizationResponse, t0, t1 int) map[
 		res["t1"] = float64(t1)
 	}
 	return res
+}
+func upload(ctx *gin.Context) {
+	timestamp, _ := strconv.Atoi(ctx.Query("timestamp"))
+	lon, _ := strconv.ParseFloat(ctx.Query("lon"), 64)
+	lat, _ := strconv.ParseFloat(ctx.Query("lat"), 64)
+	if timestamp == 0 || lon == 0 || lat == 0 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, "must provide timestamp and lonlat")
+		return
+	}
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	files := form.File["file"]
+	if len(files) != 1 {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, "must provide exactly one image")
+		return
+	}
+	if err = checkAndTryFixExtensions(files); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, err)
+		return
+	}
+
+	ext := shared.GetExtension(files[0].Filename)
+	filename := uuid.NewString() + ext
+	if err := ctx.SaveUploadedFile(files[0], volunteerFolder+filename); err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	processor.Processor.EnqueueVolunteerImage(filename, timestamp, lon, lat)
+
+	ctx.Status(http.StatusNoContent)
 }
