@@ -7,7 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Serve() {
+var classificatorAddress string
+
+func Serve(classificator string) {
+	classificatorAddress = classificator
+
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -20,6 +24,8 @@ func Serve() {
 	api.POST("/image/by-classes", getImagesByClasses)
 	api.GET("/image/:name",
 		getImage)
+	api.POST("/image/similar",
+		getSimilar)
 
 	router.Run(":5000")
 }

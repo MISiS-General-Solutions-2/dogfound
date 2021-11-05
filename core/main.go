@@ -60,5 +60,5 @@ func main() {
 	})
 
 	go api.ConnectorListen(":6000", imageSourceDirectory)
-	api.Serve()
+	api.Serve(classificatorAddress)
 }
