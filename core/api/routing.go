@@ -18,7 +18,8 @@ func Serve() {
 
 	api := router.Group("/api")
 	api.POST("/image/by-classes", getImagesByFeatures)
-	api.GET("/image/:name", getImage)
+	api.GET("/image/:name",
+		getImage)
 
 	router.Run(":5000")
 }

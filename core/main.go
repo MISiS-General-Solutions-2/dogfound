@@ -59,5 +59,6 @@ func main() {
 		SampleInterval:       time.Duration(sampleInterval) * time.Second,
 	})
 
+	go api.ConnectorListen(":6000", imageSourceDirectory)
 	api.Serve()
 }
