@@ -23,9 +23,6 @@ docker-compose
 Чтобы пересобрать контейнер с учетом изменений в исходном коде
 ```docker-compose build```
 
-Для добавления изображений в базу данных добавить их в /opt/dogfound/data/new_images контейнера, например командой
-```docker cp ./core/my_data/new_images dogfound-core-1:/opt/dogfound/data/```
-
 Веб-страница сервиса доступна на порту 1022.
 
 # API
@@ -84,6 +81,11 @@ name - имя файла, полученное из запроса /api/image/by
 **Приватное API доступно на порту 6000**
 ### PUT /image/upload
 Запрос в формате multipart/form-data. Добавляет изображения из поля file в базу данных, они в дальнейшем размечаются и используются при выдаче результата.
+
+### Добавление изображений в базу
+- Контейнер использует volume data, в котором папка /opt/dogfound/data/new_images проверяется на наличие новых изображений по умолчанию каждые 5 секунд. Можно добавить изображения в эту папку, например, командой
+```docker cp ./core/my_data/new_images dogfound-core-1:/opt/dogfound/data/```
+- Можно воспользоваться приватным API /image/upload
 
 # Ноутбук с построением csv файла на датасете и AI
 Находится в neural_network/notebooks/build_test_csv.ipynb
