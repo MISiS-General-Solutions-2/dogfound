@@ -29,8 +29,8 @@ func (r *registryRecord) UnmarshalJSON(b []byte) error {
 	}
 	r.Address = rr.Address
 	r.ID = rr.ID
-	r.Lat = rr.Geo.Coordinates[0]
-	r.Lon = rr.Geo.Coordinates[1]
+	r.Lon = rr.Geo.Coordinates[0]
+	r.Lat = rr.Geo.Coordinates[1]
 	return nil
 }
 func setRegistryData(recs []registryRecord) error {
