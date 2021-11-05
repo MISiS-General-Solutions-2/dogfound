@@ -218,12 +218,16 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 			return nil, err
 		}
 	}
-	sqlStmt := b.String()
-	fmt.Println(sqlStmt)
-	rows, err := db.Query(sqlStmt)
+	stmt := b.String()
+	fmt.Println(stmt)
+
+	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
+	return parseSearchResponse(rows)
+}
+func parseSearchResponse(rows *sql.Rows) ([]SearchResponse, error) {
 	defer rows.Close()
 	var res []SearchResponse
 	for rows.Next() {
@@ -238,7 +242,7 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 			VolunteerSourcedLon, VolunteerSourcedLat sql.NullFloat64
 		}
 		var srSQL SearchResponseSQL
-		err = rows.Scan(&srSQL.Filename, &srSQL.Address, &srSQL.CamID, &srSQL.RegistriesLon, &srSQL.RegistriesLat, &srSQL.TimeStamp, &srSQL.x0, &srSQL.y0, &srSQL.x1, &srSQL.y1, &srSQL.Breed, &srSQL.VolunteerSourcedLon, &srSQL.VolunteerSourcedLat)
+		err := rows.Scan(&srSQL.Filename, &srSQL.Address, &srSQL.CamID, &srSQL.RegistriesLon, &srSQL.RegistriesLat, &srSQL.TimeStamp, &srSQL.x0, &srSQL.y0, &srSQL.x1, &srSQL.y1, &srSQL.Breed, &srSQL.VolunteerSourcedLon, &srSQL.VolunteerSourcedLat)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -249,9 +253,33 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 		}
 		res = append(res, sr)
 	}
-	err = rows.Err()
+	err := rows.Err()
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
+}
+func GetImagesWithinFrame(lonLatBox [2][2]float64, t0, t1 int64) ([]SearchResponse, error) {
+	stmt, err := db.Prepare(`SELECT images.filename,registries.address,images.cam_id,registries.lon,registries.lat,timestamp,crop_x0,crop_y0,crop_x1,crop_y1,breed,volunteer_sourced.lon,volunteer_sourced.lat FROM images 
+		LEFT OUTER JOIN registries 
+		ON images.cam_id = registries.cam_id
+		LEFT OUTER JOIN additional on images.filename=additional.filename
+		LEFT OUTER JOIN volunteer_sourced on images.filename=volunteer_sourced.filename
+		WHERE (timestamp=0 OR (timestamp>=? AND timestamp<=?))
+			AND(
+			(registries.lon IS NOT NULL AND registries.lat IS NOT NULL AND registries.lon>=? AND registries.lon<=? AND registries.lat>=? AND registries.lat<=?)
+				OR
+			(volunteer_sourced.lon IS NOT NULL AND volunteer_sourced.lat IS NOT NULL AND volunteer_sourced.lon>=? AND volunteer_sourced.lon<=? AND volunteer_sourced.lat>=? AND volunteer_sourced.lat<=?)
+			)
+		`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(t0, t1, lonLatBox[0][0], lonLatBox[1][0], lonLatBox[0][1], lonLatBox[1][1], lonLatBox[0][0], lonLatBox[1][0], lonLatBox[0][1], lonLatBox[1][1])
+	if err != nil {
+		return nil, err
+	}
+	return parseSearchResponse(rows)
 }

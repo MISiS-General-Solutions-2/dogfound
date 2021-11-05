@@ -3,6 +3,7 @@ package api
 import (
 	"dogfound/cv"
 	"dogfound/database"
+	"dogfound/geo"
 	doghttp "dogfound/http"
 	"dogfound/processor"
 	"dogfound/shared"
@@ -148,4 +149,19 @@ func upload(ctx *gin.Context) {
 	processor.Processor.EnqueueVolunteerImage(filename, timestamp, lon, lat)
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func predictRoute(ctx *gin.Context) {
+	var req PredictRouteRequest
+	if err := ctx.BindJSON(&req); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	route, err := geo.GetPossibleRoute(time.Unix(req.Timestamp, 0), req.Lonlat)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, route)
 }

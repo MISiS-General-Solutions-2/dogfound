@@ -39,7 +39,6 @@ func simpleParseArgs() {
 }
 
 func main() {
-
 	simpleParseArgs()
 	fmt.Println(classificatorAddress)
 

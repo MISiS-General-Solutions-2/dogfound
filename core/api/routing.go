@@ -32,5 +32,7 @@ func Serve(classificator, volunteerImageFolder string) {
 		getSimilar)
 	api.PUT("/image/upload", upload)
 
+	api.POST("/geo/predict-route", predictRoute)
+
 	router.Run(":5000")
 }
