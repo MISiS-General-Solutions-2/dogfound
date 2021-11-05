@@ -60,8 +60,8 @@ func initDB() {
 	(
 		cam_id TEXT NOT NULL PRIMARY KEY,
 		address TEXT NOT NULL,
-		lat REAL NOT NULL,
-		lon REAL NOT NULL
+		lon REAL NOT NULL,
+		lat REAL NOT NULL
 	);
 	`
 	_, err := db.Exec(sqlStmt)
@@ -70,7 +70,7 @@ func initDB() {
 		panic(err)
 	}
 	AddAdditionalDataTable()
-	if err = populateRegistries(); err != nil {
+	if err = PopulateRegistries(); err != nil {
 		panic(err)
 	}
 }

@@ -39,7 +39,7 @@ func setRegistryData(recs []registryRecord) error {
 		return err
 	}
 	stmt, err := tx.Prepare(`
-	INSERT OR IGNORE INTO registries(cam_id,address,lat,lon)
+	INSERT OR IGNORE INTO registries(cam_id,address,lon,lat)
 		VALUES(?,?,?,?)
 	`)
 	if err != nil {
@@ -47,7 +47,7 @@ func setRegistryData(recs []registryRecord) error {
 	}
 	defer stmt.Close()
 	for _, rec := range recs {
-		_, err = stmt.Exec(rec.ID, rec.Address, rec.Lat, rec.Lon)
+		_, err = stmt.Exec(rec.ID, rec.Address, rec.Lon, rec.Lat)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func updateRegistryAddresses(idAddressPair [][2]string) error {
 	}
 	return tx.Commit()
 }
-func populateRegistries() error {
+func PopulateRegistries() error {
 
 	if err := loadRegistriesFromJSON(); err != nil {
 		return err
