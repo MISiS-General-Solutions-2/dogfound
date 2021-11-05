@@ -14,9 +14,7 @@ class Request(BaseModel):
 
 
 class Additional(BaseModel):
-    # change or add fields. Those fields are examples
     crop: List[int]
-    probabilities: Optional[Any] = None
 
 
 class Response(BaseModel):
@@ -25,6 +23,7 @@ class Response(BaseModel):
     is_the_owner_there: int
     color: int
     tail: int
+    breed: str
 
     additional: Additional
 
@@ -41,7 +40,7 @@ async def categorize(req: Request):
 
 def get_classes(file: str) -> Response:
     response = Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0,
-                        color=0, tail=0, additional=Additional(crop=[0, 0, 0, 0]))
+                        color=0, tail=0, breed="", additional=Additional(crop=[0, 0, 0, 0]))
 
     response = detect.run_analytics(file, response)
     return response
