@@ -139,9 +139,10 @@ def main():
 
     if CFG.freeze:
         for name, child in model.named_children():
+            print(name)
             for param in child.parameters():
                 param.requires_grad = False
-            if name == "fc":
+            if (name == "color") or (name == "tail"):
                 for param in child.parameters():
                     param.requires_grad = True
 

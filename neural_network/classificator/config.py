@@ -5,13 +5,13 @@ class CFG:
     PATH_OWNER = "./data/colorstails.csv"
     # Logging
     LOG_DIR = "./logs"
-    OUTPUT_DIR = "resnet34_baseline+owner_data"
+    OUTPUT_DIR = "test"
     TEST_PATH = ""
 
     # Model setup
     model_name = "resnet34"
     pretrained = True
-    freeze = False
+    freeze = True
 
     # Main config
     GPU_ID = 1
