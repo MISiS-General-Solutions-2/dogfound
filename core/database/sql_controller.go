@@ -204,12 +204,21 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	defer rows.Close()
 	var res []SearchResponse
 	for rows.Next() {
-		var sr SearchResponse
-		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.LonLat[1], &sr.LonLat[0], &sr.TimeStamp, &sr.AdditionalData.Crop[0], &sr.AdditionalData.Crop[1], &sr.AdditionalData.Crop[2], &sr.AdditionalData.Crop[3], &sr.Breed)
+		type SearchResponseSQL struct {
+			Filename       string
+			Address        sql.NullString
+			CamID          sql.NullString
+			TimeStamp      sql.NullInt64
+			Lat, Lon       sql.NullFloat64
+			x0, y0, x1, y1 sql.NullInt64
+			Breed          sql.NullString
+		}
+		var sr SearchResponseSQL
+		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.Lat, &sr.Lon, &sr.TimeStamp, &sr.x0, &sr.y0, &sr.x1, &sr.y1, &sr.Breed)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, sr)
+		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, [2]float64{sr.Lon.Float64, sr.Lat.Float64}, sr.Breed.String, Additional{Crop: [4]int{int(sr.x0.Int64), int(sr.y0.Int64), int(sr.x1.Int64), int(sr.y1.Int64)}}})
 	}
 	err = rows.Err()
 	if err != nil {
