@@ -19,3 +19,5 @@ neural_network/classificator/data
 
 
 
+/neural_network/yolov5/runs/
+/neural_network/yolov5/projects/
