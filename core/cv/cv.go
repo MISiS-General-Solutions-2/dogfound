@@ -31,7 +31,7 @@ func ParseImage(img string) (camID string, timestamp int64, err error) {
 	imgMat := gocv.IMRead(img, gocv.IMReadGrayScale)
 	defer imgMat.Close()
 
-	for i := 1; i < 2; i++ {
+	for i := 0; i < 2; i++ {
 		var imgBytes []byte
 		imgBytes, err = getProcessedRegionAsBytes(imgMat, rois[i], ".png")
 		if err != nil {
