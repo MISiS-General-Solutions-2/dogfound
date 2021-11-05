@@ -47,13 +47,14 @@ func initDB() {
 	CREATE TABLE IF NOT EXISTS images
 	(
 		filename TEXT NOT NULL PRIMARY KEY,
-		is_animal_there INTEGER,
-		is_it_a_dog INTEGER,
-		is_the_owner_there INTEGER,
-		color INTEGER,
-		tail INTEGER,
-		cam_id TEXT,
-		timestamp INTEGER
+		is_animal_there INTEGER NOT NULL,
+		is_it_a_dog INTEGER NOT NULL,
+		is_the_owner_there INTEGER NOT NULL,
+		color INTEGER NOT NULL,
+		tail INTEGER NOT NULL,
+		cam_id TEXT NOT NULL,
+		timestamp INTEGER NOT NULL,
+		breed TEXT NOT NULL
 	);
 	CREATE TABLE IF NOT EXISTS registries
 	(

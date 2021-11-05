@@ -85,8 +85,8 @@ func AddAdditionalData(image string, data Additional) error {
 	return nil
 }
 func AddImage(imageSourceDirectory string, record ImagesRecord) error {
-	stmt, err := db.Prepare(`INSERT INTO images(filename,is_animal_there,is_it_a_dog,is_the_owner_there,color,tail,cam_id,timestamp)
-			VALUES(?,?,?,?,?,?,?,?)
+	stmt, err := db.Prepare(`INSERT INTO images(filename,is_animal_there,is_it_a_dog,is_the_owner_there,color,tail,cam_id,timestamp,breed)
+			VALUES(?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(filename)
 		DO UPDATE
 		SET
@@ -96,7 +96,8 @@ func AddImage(imageSourceDirectory string, record ImagesRecord) error {
 			color=?,
 			tail=?,
 			cam_id=?,
-			timestamp=?
+			timestamp=?,
+			breed=?
 		WHERE filename = ?
 		`)
 	if err != nil {
@@ -104,7 +105,7 @@ func AddImage(imageSourceDirectory string, record ImagesRecord) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(record.Filename, record.IsAnimal, record.IsDog, record.IsWithOwner, record.Color, record.Tail, record.CamID, record.TimeStamp, record.IsAnimal, record.IsDog, record.IsWithOwner, record.Color, record.Tail, record.CamID, record.TimeStamp, record.Filename)
+	_, err = stmt.Exec(record.Filename, record.IsAnimal, record.IsDog, record.IsWithOwner, record.Color, record.Tail, record.CamID, record.TimeStamp, record.Breed, record.IsAnimal, record.IsDog, record.IsWithOwner, record.Color, record.Tail, record.CamID, record.TimeStamp, record.Breed, record.Filename)
 	if err != nil {
 		return err
 	}
@@ -119,7 +120,7 @@ func AddImage(imageSourceDirectory string, record ImagesRecord) error {
 func ValidateRequest(req map[string]interface{}) error {
 	for k := range req {
 		switch k {
-		case Color, Tail, CamID, TimeStamp:
+		case Color, Tail, CamID, T1, T0:
 		default:
 			return fmt.Errorf("unexpected field %v", k)
 		}
@@ -131,28 +132,26 @@ func addConditions(b *strings.Builder, req map[string]interface{}) error {
 	b.WriteString(" WHERE ")
 	first := true
 	for k, v := range req {
+		if !first {
+			b.WriteString(" AND ")
+		}
 		switch k {
 		case Filename, Address, CamID:
-			if !first {
-				b.WriteString(" AND ")
-			}
 			b.WriteString(k)
 			b.WriteRune('=')
 			b.WriteRune('"')
 			b.WriteString(v.(string))
 			b.WriteRune('"')
 		case IsAnimal, IsDog, IsWithOwner, Color, Tail:
-			if !first {
-				b.WriteString(" AND ")
-			}
 			b.WriteString(k)
 			b.WriteRune('=')
 			b.WriteString(strconv.Itoa(int(v.(float64))))
-		case TimeStamp:
-			if !first {
-				b.WriteString(" AND ")
-			}
-			b.WriteString("(timestamp IS NULL OR timestamp=0 OR timestamp>=")
+		case T0:
+			b.WriteString("(timestamp=0 OR timestamp>=")
+			b.WriteString(strconv.Itoa(int(v.(float64))))
+			b.WriteRune(')')
+		case T1:
+			b.WriteString("(timestamp=0 OR timestamp<=")
 			b.WriteString(strconv.Itoa(int(v.(float64))))
 			b.WriteRune(')')
 		default:
@@ -187,7 +186,7 @@ func GetAdditionalInfo(image string) (*Additional, error) {
 }
 func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	b := strings.Builder{}
-	b.WriteString(`SELECT images.filename,registries.address,images.cam_id,lat,lon,timestamp,crop_x0,crop_y0,crop_x1,crop_y1 FROM images 
+	b.WriteString(`SELECT images.filename,registries.address,images.cam_id,lat,lon,timestamp,crop_x0,crop_y0,crop_x1,crop_y1,breed FROM images 
 		LEFT OUTER JOIN registries 
 		ON images.cam_id = registries.cam_id
 		LEFT OUTER JOIN additional on images.filename=additional.filename`)
@@ -205,20 +204,12 @@ func GetImagesByClasses(req map[string]interface{}) ([]SearchResponse, error) {
 	defer rows.Close()
 	var res []SearchResponse
 	for rows.Next() {
-		type SearchResponseSQL struct {
-			Filename       string
-			Address        sql.NullString
-			CamID          sql.NullString
-			TimeStamp      sql.NullInt64
-			Lat, Lon       sql.NullFloat64
-			x0, y0, x1, y1 sql.NullInt64
-		}
-		var sr SearchResponseSQL
-		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.Lat, &sr.Lon, &sr.TimeStamp, &sr.x0, &sr.y0, &sr.x1, &sr.y1)
+		var sr SearchResponse
+		err = rows.Scan(&sr.Filename, &sr.Address, &sr.CamID, &sr.LonLat[1], &sr.LonLat[0], &sr.TimeStamp, &sr.AdditionalData.Crop[0], &sr.AdditionalData.Crop[1], &sr.AdditionalData.Crop[2], &sr.AdditionalData.Crop[3], &sr.Breed)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, SearchResponse{sr.Filename, sr.Address.String, sr.CamID.String, sr.TimeStamp.Int64, [2]float64{sr.Lon.Float64, sr.Lat.Float64}, Additional{Crop: [4]int{int(sr.x0.Int64), int(sr.y0.Int64), int(sr.x1.Int64), int(sr.y1.Int64)}}})
+		res = append(res, sr)
 	}
 	err = rows.Err()
 	if err != nil {
