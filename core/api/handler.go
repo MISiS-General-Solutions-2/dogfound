@@ -31,7 +31,7 @@ func getImage(ctx *gin.Context) {
 	}
 }
 
-func getImagesByFeatures(ctx *gin.Context) {
+func getImagesByClasses(ctx *gin.Context) {
 	var req map[string]interface{}
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)

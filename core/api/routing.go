@@ -17,7 +17,7 @@ func Serve() {
 	}))
 
 	api := router.Group("/api")
-	api.POST("/image/by-classes", getImagesByFeatures)
+	api.POST("/image/by-classes", getImagesByClasses)
 	api.GET("/image/:name",
 		getImage)
 

@@ -46,6 +46,5 @@ type SearchResponse struct {
 	AdditionalData Additional `json:"additional"`
 }
 type Additional struct {
-	Crop          [4]int `json:"crop"`
-	Probabilities string `json:"probabilities"`
+	Crop [4]int `json:"crop"`
 }

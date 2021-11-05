@@ -12,7 +12,7 @@ import (
 func ConnectorListen(addr, dst string) {
 	router := gin.Default()
 
-	router.POST("/image/upload", func(ctx *gin.Context) {
+	router.PUT("/image/upload", func(ctx *gin.Context) {
 		form, err := ctx.MultipartForm()
 		if err != nil {
 			ctx.AbortWithError(http.StatusBadRequest, err)

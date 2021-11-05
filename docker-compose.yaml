@@ -10,8 +10,6 @@ services:
     ports:
       # use this port
       - "1022:80"
-      # web ui
-      - "8080:8080"
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -19,6 +17,8 @@ services:
     build:
       context: ./core
       dockerfile: Dockerfile
+    ports:
+      - "6000:6000"
     volumes:
           - data:/opt/dogfound/data
     labels:
