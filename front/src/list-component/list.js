@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import './list.css';
 
 export default function ListComponent(props) {
@@ -22,34 +22,36 @@ export default function ListComponent(props) {
         <div className="listContainer">
             <div className="listDiv" id={'list_container'}>
                 {data !== [] && data !== undefined && data !== null ? data.map((el, index) => (
-                    el.timestamp !== 0 && el.lonlat[0] !== 0 && el.lonlat[1] !== 0 ?
-                        <button name={'img_' + index} id={index} key={el.filename} className="listButton"
-                                onClick={() => {
-                                    setLng(el.lonlat[0]);
-                                    setLat(el.lonlat[1]);
-                                    if (markerId !== '' && markerId !== null) {
-                                        document.getElementById('marker_' + markerId).classList.remove("FocusMarker");
-                                    }
-                                    setMarkerId(index);
-                                    document.getElementById('marker_' + index).classList.add('FocusMarker');
-                                }}
-                        >
-                            {el.address !== '' ?
-                                <p className="listAddress">
-                                    {el.address}
-                                </p>
-                                : null}
+                    <button name={'img_' + index} id={index} key={el.filename} className="listButton"
+                        onClick={() => {
+                            if (el.timestamp !== 0 && el.lonlat[0] !== 0 && el.lonlat[1] !== 0) {
+                                setLng(el.lonlat[0]);
+                                setLat(el.lonlat[1]);
+                                if (markerId !== '' && markerId !== null) {
+                                    document.getElementById('marker_' + markerId).classList.remove("FocusMarker");
+                                }
+                                setMarkerId(index);
+                                document.getElementById('marker_' + index).classList.add('FocusMarker');
+                            }
+                        }}
+                    >
+                        {el.address !== '' ?
+                            <p className="listAddress">
+                                {el.address}
+                            </p>
+                            : null}
+                        {el.timestamp !== 0 ?
                             <p className="listAddress">
                                 {new Date(el.timestamp * 1000).toLocaleDateString()}
                             </p>
-                            {el.breed !== "" ?
-                                <p>
-                                    {el.breed}
-                                </p>
                             : null}
-                            <img src={"http://5.228.244.67:1022/api/image/" + el.filename} alt=""/>
-                        </button>
-                        : null
+                        {el.breed !== "" ?
+                            <p>
+                                {el.breed}
+                            </p>
+                            : null}
+                        <img src={"http://5.228.244.67:1022/api/image/" + el.filename} alt="" />
+                    </button>
                 )) : null}
             </div>
             <div className="listResetDiv">
