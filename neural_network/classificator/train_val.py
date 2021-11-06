@@ -1,9 +1,10 @@
 import time
 
 import torch
+from tqdm import tqdm
+
 from config import CFG
 from loss import get_loss
-from tqdm import tqdm
 from utils.utils import AverageMeter, get_score, timeSince
 
 

@@ -1,17 +1,19 @@
 class CFG:
     # Data path
     DATA_PATH = "./data/detect"
+    CLEAN_DATA_PATH = "./data/clean_dogs"
     PATH_CSV = "./data/all.csv"
-    PATH_OWNER = "./data/colorstails.csv"
+    PATH_OWNER = "./data/owner+dog.csv"
+    CLEAN_CSV = "./data/clean_dogs.csv"
     # Logging
     LOG_DIR = "./logs"
-    OUTPUT_DIR = "test"
+    OUTPUT_DIR = "resnet34_baseline+owner_data+clean_data"
     TEST_PATH = ""
 
     # Model setup
     model_name = "resnet34"
     pretrained = True
-    freeze = True
+    freeze = False
 
     # Main config
     GPU_ID = 1

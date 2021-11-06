@@ -2,8 +2,9 @@ import os
 
 import torch
 import torch.nn as nn
-from config import CFG
 from torchvision import models
+
+from config import CFG
 
 
 def save_model(model, epoch, trainloss, valloss, val_color_acc, val_tail_acc, name):
