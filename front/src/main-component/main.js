@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from "react";
-import {Link, DirectLink, Element, Events, animateScroll as scroll, scrollSpy, scroller} from 'react-scroll'
+import React, { useState, useEffect } from "react";
+import { Link, DirectLink, Element, Events, animateScroll as scroll, scrollSpy, scroller } from 'react-scroll'
 import axios from "axios";
 import Header from "../header-component/header";
 import MapComponent from "../map-component/map";
@@ -60,12 +60,13 @@ export default function Main() {
         if (e4 !== 0) {
             dataTemp["tail"] = e4;
         }
+        dataTemp["is_animal_there"] = 1;
         const url = address + 'api/image/by-classes';
         // const url = 'http://5.228.244.67:1022/api/image/by-classes';
         console.log(url);
         const options = {
             method: 'POST',
-            headers: {'content-type': 'application/json'},
+            headers: { 'content-type': 'application/json' },
             data: dataTemp,
             url
         };
@@ -79,13 +80,13 @@ export default function Main() {
 
     return (
         <main-screen>
-            <Header/>
+            <Header />
             <main-component id="mainapp">
                 <Search action1={setTimestamp} action2={setOption1} action3={setOption2} action4={sendData}
-                        action5={setData} list={setListShow} listStatus={listShow} data={data} setLat={setLat}
-                        setLng={setLng}/>
+                    action5={setData} list={setListShow} listStatus={listShow} data={data} setLat={setLat}
+                    setLng={setLng} />
                 <MapComponent scroll={scrollTo} lat={lat} lng={lng} data={data} openStatus={imageShow}
-                              show={setImageShow} setId={setId}/>
+                    show={setImageShow} setId={setId} />
             </main-component>
         </main-screen>
     )

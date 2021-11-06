@@ -44,17 +44,21 @@ export default function ListComponent(props) {
                             <p className="listAddress">
                                 {new Date(el.timestamp * 1000).toLocaleDateString()}
                             </p>
-                            : null}
+                            :
+                            <p className={"listAddress"}>
+                                Не было найдено временной метки в заданном месте
+                            </p>
+                        }
                         {el.breed !== "" ?
                             <p>
                                 {el.breed}
                             </p>
                             : null}
-                        <img src={"http://5.228.244.67:1022/api/image/" + el.filename} alt="" />
+                        <img src={window.location.href + "api/image/" + el.filename} alt="" />
                     </button>
                 )) : null}
             </div>
-            {document.getElementsByClassName('listButton').length === 0 ?
+            {data === [] || data === undefined || data === null ?
                 <p className={"no_dogs_found"}>По данному запросу собак не найдено.</p>
                 : null}
             <div className="listResetDiv">
