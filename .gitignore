@@ -1,0 +1,23 @@
+core/data/**
+!core/data/apxi8
+!core/data/dogfound.db
+core/my_data/**
+
+venv/**
+__*
+
+*.o
+*.a
+*.log
+core/.vscode
+.vscode
+.zip
+
+# Classification
+neural_network/classificator/data
+**/weights
+.idea
+
+
+/neural_network/yolov5/runs/
+/neural_network/yolov5/projects/
