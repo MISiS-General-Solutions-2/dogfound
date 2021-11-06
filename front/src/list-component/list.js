@@ -54,6 +54,9 @@ export default function ListComponent(props) {
                     </button>
                 )) : null}
             </div>
+            {document.getElementsByClassName('listButton').length === 0 ?
+                <p className={"no_dogs_found"}>По данному запросу собак не найдено.</p>
+                : null}
             <div className="listResetDiv">
                 <button className="listReset" onClick={() => action(undefined)}>
                     Попробовать еще раз

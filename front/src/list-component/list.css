@@ -10,6 +10,11 @@
     border: 3px solid red !important;
 }
 
+.no_dogs_found {
+    display: flex;
+    justify-content: center;
+}
+
 .listDiv {
     min-width: 600px;
     max-width: 600px;
