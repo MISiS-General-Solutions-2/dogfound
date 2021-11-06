@@ -24,6 +24,7 @@ type processor struct {
 	Config
 	cameraInput    chan string
 	volunteerInput chan volunteerAddedImage
+	addressGuesses chan string
 	wg             sync.WaitGroup
 
 	statuses map[string]struct{}
@@ -37,6 +38,7 @@ func CreateProcessor(cfg *Config) *processor {
 	proc.statuses = make(map[string]struct{})
 	proc.cameraInput = make(chan string, 100)
 	proc.volunteerInput = make(chan volunteerAddedImage, 1000)
+	proc.addressGuesses = make(chan string, 400)
 	return &proc
 }
 func (r *processor) Start() {
@@ -95,6 +97,8 @@ func (r *processor) worker() {
 			r.process(image)
 		case image := <-r.volunteerInput:
 			r.processVolunteerAdded(image)
+		case image := <-r.addressGuesses:
+			r.processAddressGuesses(image)
 		}
 	}
 
@@ -121,6 +125,9 @@ func (r *processor) process(image string) {
 		r.dropImage(image)
 		return
 	}
+	if camID == "" {
+		camID = "PVN_hd_SVAO_3498_4"
+	}
 	var cr http.CategorizationResponse
 	if cr, err = r.GetClassInfo(r.CameraInputDirectory + image); err != nil {
 		if !errors.IsDestinationError(err) {
@@ -139,6 +146,14 @@ func (r *processor) process(image string) {
 	fmt.Println(counter)
 	if counter == total {
 		fmt.Println("finished in ", time.Since(r.t1).Seconds())
+		withUnparsedCamIDs, err := database.SelectWithUnparsedCamIDs()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		for _, image := range withUnparsedCamIDs {
+			r.addressGuesses <- image
+		}
 	}
 }
 func (r *processor) saveProcessedCameraImage(image, camID string, timestamp int64, cr http.CategorizationResponse) {
@@ -203,4 +218,9 @@ func (r *processor) saveProcessedVolunteerImage(image volunteerAddedImage, cr ht
 }
 func (r *processor) EnqueueVolunteerImage(image string, timestamp int, lat, lon float64) {
 	r.volunteerInput <- volunteerAddedImage{filename: image, timestamp: timestamp, lonlat: [2]float64{lon, lat}}
+}
+func (r *processor) processAddressGuesses(image string) {
+	if err := database.AddCamID(image, "PVN_hd_TSAO_5300_3"); err != nil {
+		fmt.Println(err)
+	}
 }
