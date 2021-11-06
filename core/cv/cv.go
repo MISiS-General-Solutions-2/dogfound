@@ -44,6 +44,9 @@ func ParseImage(img string) (camID string, timestamp int64, err error) {
 
 		functions[i](imgBytes)
 	}
+	if timestamp == 0 {
+		timestamp = parseTimestampTopRight(imgMat)
+	}
 	return
 }
 func getCroppedPart(img gocv.Mat, crop image.Rectangle) *gocv.Mat {
@@ -99,7 +102,7 @@ func getProcessedRegionAsBytes(img gocv.Mat, crop image.Rectangle, format string
 		w.IMShow(*cropped)
 		w.WaitKey(0)
 	}
-	if !isBlackHeader(*cropped, 5, 250, 0.5, 0.02) {
+	if !isBlackHeader(*cropped, 5, 250, 0.5, 0) {
 		return nil, nil
 	}
 	processed := preProcess(*cropped)
@@ -114,4 +117,42 @@ func getProcessedRegionAsBytes(img gocv.Mat, crop image.Rectangle, format string
 		return nil, err
 	}
 	return buf.GetBytes(), nil
+}
+func omitBlackHeader(img gocv.Mat) *gocv.Mat {
+	var prevCrop *gocv.Mat
+	for i := 0; i < img.Rows(); i++ {
+		crop := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: img.Cols() - 1, Y: i}}
+		cropped := getCroppedPart(img, crop)
+		if cropped == nil {
+			return nil
+		}
+		if !isBlackHeader(*cropped, 5, 250, 0.8, 0.02) {
+			return prevCrop
+		}
+		prevCrop = cropped
+	}
+	return nil
+}
+func selectTopPart(img gocv.Mat, part float64) *gocv.Mat {
+	crop := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: img.Cols() - 1, Y: int(float64(img.Cols()) * part)}}
+	return getCroppedPart(img, crop)
+}
+func parseTimestampTopRight(img gocv.Mat) int64 {
+	headerLess := omitBlackHeader(img)
+	if headerLess == nil {
+		fmt.Println("could not omit black header")
+		return 0
+	}
+	roi := selectTopPart(*headerLess, 0.17)
+	if roi == nil {
+		fmt.Println("could not omit black header")
+		return 0
+	}
+
+	w := gocv.NewWindow("roi")
+	defer w.Close()
+	w.IMShow(*roi)
+	w.WaitKey(0)
+
+	return 0
 }
