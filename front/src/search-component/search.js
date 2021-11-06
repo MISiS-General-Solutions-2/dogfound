@@ -1,12 +1,14 @@
 import React, {useState} from "react";
 import {DateRange} from 'react-date-range';
 import Select from 'react-select'
-import 'react-date-range/dist/styles.css'; // main css file
-import 'react-date-range/dist/theme/default.css'; // theme css file
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
+import './array';
 import './search.css';
 import ListComponent from "../list-component/list";
 
 export default function Search(props) {
+
     const [time0, setTime0] = useState(null);
     const [time1, setTime1] = useState(null);
     const [value1, setValue1] = useState(null);
@@ -67,6 +69,7 @@ export default function Search(props) {
                             setTime0(item.selection.startDate);
                             setTime1(item.selection.endDate);
                             setError1(false);
+                            console.log('MOVE');
                         }}
                         moveRangeOnFirstSelection={false}
                         ranges={state}

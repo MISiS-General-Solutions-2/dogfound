@@ -8,7 +8,7 @@ export default class Header extends React.Component {
             <header>
                 <p>DOG</p>
                 <p>FOUND&nbsp;</p>
-                <p>MISIS GENERAL SOLUTIONS</p   >
+                <p>MISIS GENERAL SOLUTIONS</p>
             </header>
         );
     }

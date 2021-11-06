@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 
+	"github.com/otiai10/gosseract"
 	"gocv.io/x/gocv"
 )
 
@@ -44,6 +45,9 @@ func ParseImage(img string) (camID string, timestamp int64, err error) {
 
 		functions[i](imgBytes)
 	}
+	if timestamp == 0 {
+		//timestamp = parseTimestampTopRight(imgMat)
+	}
 	return
 }
 func getCroppedPart(img gocv.Mat, crop image.Rectangle) *gocv.Mat {
@@ -71,6 +75,7 @@ func isBlackHeader(img gocv.Mat, blackValueThresh, whiteValueThresh int, blackPa
 	total := float64(img.Cols() * img.Rows())
 	blackPercent := float64(blackCount) / total
 	whitePercent := float64(whiteCount) / total
+
 	return blackPercent >= blackPartThresh && whitePercent >= whitePartThresh
 }
 func preProcess(img gocv.Mat) gocv.Mat {
@@ -99,7 +104,7 @@ func getProcessedRegionAsBytes(img gocv.Mat, crop image.Rectangle, format string
 		w.IMShow(*cropped)
 		w.WaitKey(0)
 	}
-	if !isBlackHeader(*cropped, 5, 250, 0.5, 0.02) {
+	if !isBlackHeader(*cropped, 5, 250, 0.5, 0) {
 		return nil, nil
 	}
 	processed := preProcess(*cropped)
@@ -114,4 +119,84 @@ func getProcessedRegionAsBytes(img gocv.Mat, crop image.Rectangle, format string
 		return nil, err
 	}
 	return buf.GetBytes(), nil
+}
+func omitBlackHeader(img gocv.Mat) *gocv.Mat {
+	for i := 1; i < img.Rows(); i++ {
+		crop := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: img.Cols() - 1, Y: i}}
+		cropped := getCroppedPart(img, crop)
+		if cropped == nil {
+			return nil
+		}
+
+		if !isBlackHeader(*cropped, 5, 250, 0.9, 0) {
+			start := i
+			if start-5 > 0 {
+				start = i - 5
+			}
+			crop := image.Rectangle{Min: image.Point{X: 0, Y: start}, Max: image.Point{X: img.Cols() - 1, Y: img.Rows() - 1}}
+			return getCroppedPart(img, crop)
+		}
+	}
+	return nil
+}
+func selectTopPart(img gocv.Mat, part float64) *gocv.Mat {
+	crop := image.Rectangle{Min: image.Point{X: 0, Y: 0}, Max: image.Point{X: img.Cols() - 1, Y: int(float64(img.Cols()) * part)}}
+	return getCroppedPart(img, crop)
+}
+func preProcessTopRight(img gocv.Mat) gocv.Mat {
+	w := gocv.NewWindow("processing")
+	defer w.Close()
+
+	gocv.Resize(img, &img, image.Point{}, 3, 3, gocv.InterpolationCubic)
+
+	// morhtElem := gocv.GetStructuringElement(gocv.MorphShape(gocv.MorphEllipse), image.Point{2, 2})
+	// defer morhtElem.Close()
+	// gocv.MorphologyEx(img, &img, gocv.MorphDilate, morhtElem)
+
+	gocv.MedianBlur(img, &img, 5)
+
+	gocv.Threshold(img, &img, 200, 255, gocv.ThresholdBinaryInv)
+	w.IMShow(img)
+	w.WaitKey(0)
+	return img
+}
+func parseTimestampTopRight(img gocv.Mat) int64 {
+	headerLess := omitBlackHeader(img)
+	if headerLess == nil {
+		fmt.Println("could not omit black header")
+		return 0
+	}
+
+	roi := selectTopPart(*headerLess, 0.09)
+	if roi == nil {
+		fmt.Println("could not sect top part")
+		return 0
+	}
+
+	processed := preProcessTopRight(*roi)
+
+	buf, err := gocv.IMEncode(".png", processed)
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+	b := buf.GetBytes()
+	if len(b) == 0 {
+		return 0
+	}
+
+	client := gosseract.NewClient()
+	defer client.Close()
+	client.SetImageFromBytes(b)
+	client.SetWhitelist("0123456789--")
+	text, err := client.Text()
+	if err := client.SetVariable("oem", "2"); err != nil {
+		fmt.Println(err)
+	}
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(text)
+
+	return 0
 }

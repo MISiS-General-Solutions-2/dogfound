@@ -30,3 +30,28 @@ header p:nth-child(3) {
     font-size: 12px;
     left: 185px;
 }
+
+header div {
+    position: absolute;
+    right: 100px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+header div p {
+    font-size: 21px !important;
+    margin: unset;
+    text-align: end;
+}
+
+header button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    right: 10px;
+    height: 80%;
+}

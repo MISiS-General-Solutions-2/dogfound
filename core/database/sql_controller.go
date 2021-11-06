@@ -141,7 +141,7 @@ func AddImage(imageSourceDirectory string, record ImagesRecord) error {
 func ValidateRequest(req map[string]interface{}) error {
 	for k := range req {
 		switch k {
-		case Color, Tail, CamID, T1, T0:
+		case Color, Tail, CamID, T1, T0, IsAnimal:
 		default:
 			return fmt.Errorf("unexpected field %v", k)
 		}
@@ -282,4 +282,43 @@ func GetImagesWithinFrame(lonLatBox [2][2]float64, t0, t1 int64) ([]SearchRespon
 		return nil, err
 	}
 	return parseSearchResponse(rows)
+}
+func SelectWithUnparsedCamIDs() ([]string, error) {
+	stmt := "SELECT filename FROM images OUTER LEFT JOIN registries ON images.cam_id=registries.cam_id WHERE registries.cam_id IS NULL;"
+	rows, err := db.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var res []string
+	for rows.Next() {
+		var image string
+		err := rows.Scan(&image)
+		if err != nil {
+			log.Fatal(err)
+		}
+		res = append(res, image)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+func AddCamID(image, camID string) error {
+	stmt, err := db.Prepare(`UPDATE images SET
+		cam_id=?
+		WHERE
+			filename=? AND cam_id=""
+		`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	if _, err = stmt.Exec(camID, image); err != nil {
+		return err
+	}
+	return nil
 }
