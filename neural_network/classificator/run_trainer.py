@@ -5,16 +5,16 @@ import time
 import numpy as np
 import pandas as pd
 import torch
-from check_paths import check_paths
-from config import CFG
-from dataset import TrainValDataset
-from model import MultiOutputModel, save_model
 from sklearn.model_selection import train_test_split
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+
+from check_paths import check_paths
+from config import CFG
+from dataset import TrainDataset, ValDataset
+from model import MultiOutputModel, save_model
 from train_val import train_fn, valid_fn
-from transforms import get_transforms
 from utils.utils import init_logger, seed_torch
 
 
@@ -60,6 +60,14 @@ def main():
 
     print(owner_df.shape)
 
+    clean_df = pd.read_csv(CFG.CLEAN_CSV)
+    mask_clean = clean_df["image"].apply(check_paths)
+    clean_df = clean_df[mask_clean]
+    clean_df["color"] = clean_df["color"].apply(lambda x: x - 1)
+    clean_df["tail"] = clean_df["tail"].apply(lambda x: x - 1)
+
+    print(clean_df.shape)
+
     final_df = pd.concat([train_df, owner_df], axis=0)
 
     print(final_df.shape)
@@ -85,9 +93,13 @@ def main():
     )
 
     train_fold = pd.concat([X_train, y_train], axis=1)
+    train_fold = pd.concat([train_fold, clean_df], axis=0)
+    print(train_fold.head())
     LOGGER.info("train shape: ")
     LOGGER.info(train_fold.shape)
+
     valid_fold = pd.concat([X_val, y_val], axis=1)
+    print(valid_fold.head())
     LOGGER.info("valid shape: ")
     LOGGER.info(valid_fold.shape)
 
@@ -97,12 +109,8 @@ def main():
 
     device = torch.device(f"cuda:{CFG.GPU_ID}")
 
-    train_dataset = TrainValDataset(
-        train_fold, transform=get_transforms(cfg=CFG, data="train")
-    )
-    valid_dataset = TrainValDataset(
-        valid_fold, transform=get_transforms(cfg=CFG, data="valid")
-    )
+    train_dataset = TrainDataset(train_fold)
+    valid_dataset = ValDataset(valid_fold)
 
     def seed_worker(worker_id):
         worker_seed = torch.initial_seed() % 2 ** 32
@@ -139,9 +147,10 @@ def main():
 
     if CFG.freeze:
         for name, child in model.named_children():
+            print(name)
             for param in child.parameters():
                 param.requires_grad = False
-            if name == "fc":
+            if (name == "color") or (name == "tail"):
                 for param in child.parameters():
                     param.requires_grad = True
 
