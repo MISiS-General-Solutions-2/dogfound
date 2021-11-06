@@ -1,102 +1,92 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
+import {Link, DirectLink, Element, Events, animateScroll as scroll, scrollSpy, scroller} from 'react-scroll'
 import axios from "axios";
 import Header from "../header-component/header";
 import MapComponent from "../map-component/map";
 import Search from "../search-component/search";
 import './main.css';
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:1022";
 
-class Main extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            filename: null,
-            timestamp: 0,
-            option1: null,
-            option2: null,
-            data: null,
-            imageShow: false
+export default function Main() {
+    const [lat, setLat] = useState(55.75219808341882);
+    const [id, setId] = useState('');
+    const [lng, setLng] = useState(37.621985952011016);
+    const [filename, setFilename] = useState(null);
+    const [timestamp, setTimestamp] = useState(0);
+    const [option1, setOption1] = useState(null);
+    const [option2, setOption2] = useState(null);
+    const [data, setData] = useState(undefined);
+    const [imageShow, setImageShow] = useState(false);
+    const [listShow, setListShow] = useState(false);
+    const address = window.location.href;
+    console.log(lat, lng);
+
+    function scrollTo(e) {
+        if (id !== '' && id !== null) {
+            let elems = document.getElementsByClassName("listButton");
+            [].forEach.call(elems, function (el) {
+                el.classList.remove("Focus");
+            });
+            document.getElementById(id).classList.remove("Focus");
+            console.log(document.getElementsByClassName('Focus'));
         }
-        this.timestampGet = this.timestampGet.bind(this);
-        this.option1Get = this.option1Get.bind(this);
-        this.option2Get = this.option2Get.bind(this);
-        this.sendData = this.sendData.bind(this);
-        this.handleOpenModal = this.handleOpenModal.bind(this);
-        this.handleCloseModal = this.handleCloseModal.bind(this);
-        this.resetData = this.resetData.bind(this);
-    }
 
-    timestampGet(e) {
-        this.setState({
-            timestamp: e
+        setId(e);
+        document.getElementById(e).classList.add('Focus');
+        scroller.scrollTo('img_' + e, {
+            duration: 500,
+            smooth: true,
+            containerId: 'list_container',
         })
-        console.log(e);
+        let elm = document.getElementsByClassName("listButton")
     }
 
-    option1Get(e) {
-        this.setState({
-            option1: e
-        })
-        console.log(e);
-    }
+    useEffect(() => {
+        Events.scrollEvent.register('begin', function () {
+            console.log("begin", arguments);
+        });
 
-    option2Get(e) {
-        this.setState({
-            option2: e
-        })
-        console.log(e);
-    }
+        Events.scrollEvent.register('end', function () {
+            console.log("end", arguments);
+        });
+    })
 
-    handleOpenModal() {
-        this.setState({ imageShow: true });
-    }
-
-    handleCloseModal() {
-        this.setState({ imageShow: false });
-    }
-
-    resetData() {
-        console.log('reseted');
-        this.setState({
-            data: null,
-            imageShow: false
-        })
-    }
-
-    sendData() {
-        const { option1, option2, timestamp } = this.state;
-        let data = {
-            "color": option1,
-            "tail": option2,
-            "timestamp": timestamp,
+    function sendData(e1, e2, e3, e4) {
+        let dataTemp = {};
+        dataTemp["t0"] = e1;
+        dataTemp["t1"] = e2;
+        if (e3 !== 0) {
+            dataTemp["color"] = e3;
         }
-        const url = `http://${API_URL}/api/image/by-classes`
+        if (e4 !== 0) {
+            dataTemp["tail"] = e4;
+        }
+        const url = address + 'api/image/by-classes';
+        // const url = 'http://5.228.244.67:1022/api/image/by-classes';
+        console.log(url);
         const options = {
             method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            data: data,
-            url,
+            headers: {'content-type': 'application/json'},
+            data: dataTemp,
+            url
         };
         axios(options)
             .then(response => {
-                this.setState({
-                    data: response
-                })
+                setData(response);
+
+                console.log(e1, e2, e3, e4);
             });
     }
 
-    render() {
-        const { data, imageShow, listShow } = this.state;
-        return (
-            <main-screen>
-                <Header />
-                <main-component id="mainapp">
-                    <Search action1={this.timestampGet} action2={this.option1Get} action3={this.option2Get} action4={this.sendData} show={this.handleOpenModalList} hide={this.handleCloseModalList} status={listShow} data={data} action={this.resetData} />
-                    <MapComponent data={data} openStatus={imageShow} show={this.handleOpenModal} hide={this.handleCloseModal} />
-                </main-component>
-            </main-screen>
-        )
-    }
+    return (
+        <main-screen>
+            <Header/>
+            <main-component id="mainapp">
+                <Search action1={setTimestamp} action2={setOption1} action3={setOption2} action4={sendData}
+                        action5={setData} list={setListShow} listStatus={listShow} data={data} setLat={setLat}
+                        setLng={setLng}/>
+                <MapComponent scroll={scrollTo} lat={lat} lng={lng} data={data} openStatus={imageShow}
+                              show={setImageShow} setId={setId}/>
+            </main-component>
+        </main-screen>
+    )
 }
-
-export default Main;

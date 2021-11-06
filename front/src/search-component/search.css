@@ -1,7 +1,9 @@
 search-component {
     display: flex;
     flex-direction: column;
-    min-width: 600px;
+    min-width: 355px;
+    max-width: 22.5%;
+    width: 100%;
     padding: 30px;
     box-sizing: border-box;
     overflow-y: auto;
@@ -49,6 +51,24 @@ search-component p:nth-child(4) {
     right: 0;
     top: 0;
     font-size: 18px;
+}
+
+.rdrDateDisplayWrapper {
+    display: none;
+}
+
+.date_holder {
+    display: flex;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.rdrMonthsVertical {
+    align-items: center;
+}
+
+.react-date-picker__inputGroup__divider {
+    display: none;
 }
 
 .css-1pahdxg-control {
@@ -166,7 +186,7 @@ search-component .SendButton {
     background: #54A0FF;
     border-radius: 75px;
     width: 100%;
-    height: 65px;
+    height: 6%;
     color: #FFFFFF;
     border: unset;
     cursor: pointer;
