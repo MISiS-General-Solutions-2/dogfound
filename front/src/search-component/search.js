@@ -1,108 +1,97 @@
-import React from "react";
-import DatePicker from 'react-date-picker';
+import React, {useState} from "react";
+import {DateRange} from 'react-date-range';
 import Select from 'react-select'
+import 'react-date-range/dist/styles.css'; // main css file
+import 'react-date-range/dist/theme/default.css'; // theme css file
 import './search.css';
 import ListComponent from "../list-component/list";
 
-export default class Search extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            value: "",
-            error1: false,
-            error2: false,
-            error3: false,
-            value1: null,
-            value2: null,
-            value3: null,
-        }
-        this.dateChange = this.dateChange.bind(this);
-        this.select1 = this.select1.bind(this);
-        this.select2 = this.select2.bind(this);
-        this.sendDataButton = this.sendDataButton.bind(this);
-    }
-    dateChange(e) {
-        const action1 = this.props.action1;
-        this.setState({
-            value: e
-        })
-        action1(e.getTime() / 1000);
-        this.setState({
-            error1: false,
-            value1: e.getTime() / 1000,
-        })
-    }
-    select1(e) {
-        const action2 = this.props.action2;
-        action2(e.value);
-        this.setState({
-            error2: false,
-            value2: e.value,
-        })
-    }
-    select2(e) {
-        const action3 = this.props.action3;
-        action3(e.value);
-        this.setState({
-            error3: false,
-            value3: e.value,
-        })
-    }
-    sendDataButton() {
-        const { value1, value2, value3 } = this.state;
-        const action4 = this.props.action4;
-        this.setState({
-            error1: value1 === null ? true : false,
-            error2: value2 === null ? true : false,
-            error3: value3 === null ? true : false,
-        })
-        if (value1 && value2 && value3 !== null) {
-            action4();
+export default function Search(props) {
+    const [time0, setTime0] = useState(null);
+    const [time1, setTime1] = useState(null);
+    const [value1, setValue1] = useState(null);
+    const [value2, setValue2] = useState(null);
+    const [error1, setError1] = useState(false);
+    const [error2, setError2] = useState(false);
+    const [error3, setError3] = useState(false);
+
+    const options1 = [
+        {value: 0, label: 'Любой'},
+        {value: 1, label: 'Cветлая'},
+        {value: 2, label: 'Темная'},
+        {value: 3, label: 'Разноцветная'}
+    ];
+    const options2 = [
+        {value: 0, label: 'Любой'},
+        {value: 1, label: 'Длинный хвост'},
+        {value: 2, label: 'Короткий хвост'}
+    ];
+
+    const data = props.data;
+    const action4 = props.action4
+    const action5 = props.action5;
+
+    const setLat = props.setLat;
+    const setLng = props.setLng;
+
+    function sendDataButton() {
+        setError1(time0 === null || time1 === null ? true : false);
+        setError2(value1 === null ? true : false);
+        setError3(value2 === null ? true : false);
+        if (error1 !== true && error2 !== true && error3 !== true && time0 !== null && time1 !== null && value1 !== null && value2 !== null) {
+            console.log('sss');
+            action4(time0.getTime() / 1000, time1.getTime() / 1000, value1.value, value2.value)
         }
     }
-    render() {
-        const options1 = [
-            { value: 'cветлая', label: 'Cветлая' },
-            { value: 'темная', label: 'Темная' },
-            { value: 'разноцветная', label: 'Разноцветная' }
-        ]
-        const options2 = [
-            { value: 'длинный хвост', label: 'Длинный хвост' },
-            { value: 'короткий хвост', label: 'Короткий хвост' }
-        ]
-        const { value, error1, error2, error3 } = this.state;
-        const data = this.props.data;
-        const action = this.props.action;
-        const action5 = this.props.action5;
-        console.log(data);
-        if (data === null) {
-            return (
-                <search-component>
-                    <p>Поиск питомца</p>
-                    <div className="option">Дата пропажи
-                        {error1 ? <div className="error">Поле не заполнено!</div> : null}
-                    </div>
-                    <DatePicker
-                        onChange={this.dateChange}
-                        value={value}
-                        defaultValue=""
-                        dateFormat="DD/MM/YYYY"
+
+    const [state, setState] = useState([
+        {
+            startDate: new Date(),
+            endDate: new Date(),
+            key: 'selection'
+        }
+    ]);
+
+    if (data === undefined) {
+        return (
+            <search-component>
+                <p>Поиск питомца</p>
+                <div className="option">Дата пропажи
+                    {error1 ? <div className="error">Поле не заполнено!</div> : null}
+                </div>
+                <div className={'date_holder'}>
+                    <DateRange
+                        editableDateInputs={true}
+                        onChange={item => {
+                            setState([item.selection]);
+                            setTime0(item.selection.startDate);
+                            setTime1(item.selection.endDate);
+                            setError1(false);
+                        }}
+                        moveRangeOnFirstSelection={false}
+                        ranges={state}
                     />
-                    <div className="option">Окрас
-                        {error2 ? <div className="error">Поле не заполнено!</div> : null}
-                    </div>
-                    <Select options={options1} placeholder={"Цвет"} onChange={(e) => this.select1(e)} />
-                    <div className="option">Тип хвоста
-                        {error3 ? <div className="error">Поле не заполнено!</div> : null}
-                    </div>
-                    <Select options={options2} placeholder={"Хвост"} onChange={(e) => this.select2(e)} />
-                    <button className={"SendButton"} onClick={this.sendDataButton}>Найти!</button>
-                </search-component>
-            );
-        } else {
-            return (
-                <ListComponent data={data} action={action} action2={action5} />
-            )
-        }
+                </div>
+                <div className="option">Окрас
+                    {error2 ? <div className="error">Поле не заполнено!</div> : null}
+                </div>
+                <Select options={options1} defaultValue={0} placeholder={"Цвет"} onChange={(e) => {
+                    setValue1(e);
+                    setError2(false);
+                }}/>
+                <div className="option">Тип хвоста
+                    {error3 ? <div className="error">Поле не заполнено!</div> : null}
+                </div>
+                <Select options={options2} defaultValue={0} placeholder={"Хвост"} onChange={(e) => {
+                    setValue2(e);
+                    setError3(false);
+                }}/>
+                <button className={"SendButton"} onClick={sendDataButton}>Найти!</button>
+            </search-component>
+        );
+    } else {
+        return (
+            <ListComponent data={data} action1={action5} setLat={setLat} setLng={setLng}/>
+        )
     }
 }

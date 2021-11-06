@@ -1,56 +1,51 @@
 {
-    "name": "reac-app",
-    "version": "0.1.0",
-    "private": true,
-    "dependencies": {
-        "@2gis/mapgl": "^1.19.1",
-        "@mapbox/mapbox-gl-language": "^1.0.0",
-        "@testing-library/jest-dom": "^5.14.1",
-        "@testing-library/react": "^12.1.2",
-        "@testing-library/user-event": "^13.5.0",
-        "axios": "^0.23.0",
-        "google-map-react": "^2.1.10",
-        "leaflet": "^1.7.1",
-        "mapbox-gl": "^2.5.1",
-        "react": "^17.0.2",
-        "react-date-picker": "^8.3.4",
-        "react-datepicker": "^4.3.0",
-        "react-dom": "^17.0.2",
-        "react-google-maps": "^9.4.5",
-        "react-leaflet": "3.2.0",
-        "react-map-gl": "^6.1.17",
-        "react-mapbox-gl": "^5.1.1",
-        "react-modal": "^3.14.3",
-        "react-scripts": "^4.0.3",
-        "react-select": "^5.1.0",
-        "react-simple-maps": "^2.3.0",
-        "web-vitals": "^2.1.2"
-    },
-    "scripts": {
-        "start": "set PORT=1022 && react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "devDependencies": {
-        "yarn-upgrade-all": "^0.5.4"
-    }
+  "name": "reac-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.5.0",
+    "@wojtekmaj/react-daterange-picker": "^3.3.2",
+    "axios": "^0.23.0",
+    "mapbox-gl": "^2.5.1",
+    "react": "^17.0.2",
+    "react-date-range": "^1.4.0",
+    "react-dom": "^17.0.2",
+    "react-map-gl": "^6.1.17",
+    "react-mapbox-gl": "^5.1.1",
+    "react-modal": "^3.14.3",
+    "react-scripts": "^4.0.3",
+    "react-scroll": "^1.8.4",
+    "react-select": "^5.1.0",
+    "react-simple-maps": "^2.3.0",
+    "web-vitals": "^2.1.2"
+  },
+  "scripts": {
+    "start": "set PORT=1022 && react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "yarn-upgrade-all": "^0.5.4"
+  }
 }
