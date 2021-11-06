@@ -46,7 +46,7 @@ func Categorize(categorizationServer Destination, img string) (resp Categorizati
 }
 func GetCamID(categorizationServer Destination, img string) (resp string, err error) {
 	var body []byte
-	body, err = json.Marshal(img)
+	body, err = json.Marshal(ImageRequest{Image: img})
 	if err != nil {
 		return "", err
 	}
