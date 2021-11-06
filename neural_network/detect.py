@@ -108,12 +108,12 @@ def run_analytics(file_path, response):
             # Define tail and color classes
             classes = classifier_model(
                 tr_pipe(dog_crop).unsqueeze(0).to(device))
-            dog_breed = breed_model(tr_pipe(dog_crop).unsqueeze(0).to(device))
             color_cl = classes['color'].argmax().cpu().detach().item() + 1
             tail_cl = classes['tail'].argmax().cpu().detach().item() + 1
             response.color = color_cl
             response.tail = tail_cl
             # Define dog breed
+            dog_breed = breed_model(tr_pipe(dog_crop).unsqueeze(0).to(device))
             dog_breed_cl = ""
             label_dict = _read_dict(file)
             dog_breed_idx = dog_breed.argmax().cpu().detach().item()
