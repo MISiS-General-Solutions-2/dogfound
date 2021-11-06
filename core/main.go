@@ -5,8 +5,8 @@ import (
 	"dogfound/database"
 	"dogfound/http"
 	"dogfound/processor"
-	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -23,15 +23,11 @@ var (
 )
 
 func simpleParseArgs() {
-	if len(os.Args) != 4 {
+	if len(os.Args) != 3 {
 		panic("must provide arguments: dogfound classificator_address num_workers sample_interval")
 	}
 	var err error
 	classificatorAddress = os.Args[1]
-	numWorkers, err = strconv.Atoi(os.Args[2])
-	if err != nil {
-		panic("num_workers must be integer")
-	}
 	sampleInterval, err = strconv.Atoi(os.Args[2])
 	if err != nil {
 		panic("sample_interval must be integer")
@@ -40,8 +36,7 @@ func simpleParseArgs() {
 
 func main() {
 	simpleParseArgs()
-	fmt.Println(classificatorAddress)
-
+	numWorkers = runtime.GOMAXPROCS(0)
 	close := database.Connect()
 	defer close()
 
