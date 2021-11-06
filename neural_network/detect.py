@@ -15,11 +15,11 @@ dogs_indx_list = [i for i in range(151, 276)]
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 sys.path.append('yolov5/')
 
-yolo_model = torch.load('models/detect/yolo_finetuned_v2.pt',
+yolo_model = torch.load('models/detect/yolo_scratch_v1.pt',
                         map_location=device)['model'].float().eval().autoshape()
 yolo_model = yolo_model.to(device)
 
-yolo_model.conf = 0.27
+yolo_model.conf = 0.4
 yolo_model.iou = 0.45
 
 
