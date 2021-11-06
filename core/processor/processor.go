@@ -220,7 +220,16 @@ func (r *processor) EnqueueVolunteerImage(image string, timestamp int, lat, lon 
 	r.volunteerInput <- volunteerAddedImage{filename: image, timestamp: timestamp, lonlat: [2]float64{lon, lat}}
 }
 func (r *processor) processAddressGuesses(image string) {
-	if err := database.AddCamID(image, "PVN_hd_TSAO_5300_3"); err != nil {
+	defaultCamID := "PVN_hd_TSAO_5300_3"
+	camID, err := http.GetCamID(r.Classificator, image)
+	if err != nil {
+		fmt.Println(err)
+		camID = defaultCamID
+	}
+	if camID == "" {
+		camID = defaultCamID
+	}
+	if err := database.AddCamID(image, camID); err != nil {
 		fmt.Println(err)
 	}
 }
