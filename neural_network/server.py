@@ -46,7 +46,7 @@ def get_classes(file: str) -> Response:
     return response
 
 
-@app.post("/api/cam_id")
+@app.post("/api/cam-id")
 async def cam_id(req: str):
     return cam_id(req.image)
 
