@@ -141,7 +141,7 @@ func AddImage(imageSourceDirectory string, record ImagesRecord) error {
 func ValidateRequest(req map[string]interface{}) error {
 	for k := range req {
 		switch k {
-		case Color, Tail, CamID, T1, T0:
+		case Color, Tail, CamID, T1, T0, IsAnimal:
 		default:
 			return fmt.Errorf("unexpected field %v", k)
 		}
