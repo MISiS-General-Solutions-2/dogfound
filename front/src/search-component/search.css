@@ -1,8 +1,8 @@
 search-component {
     display: flex;
     flex-direction: column;
-    min-width: 355px;
-    max-width: 22.5%;
+    min-width: 600px;
+    max-width: 600px;
     width: 100%;
     padding: 30px;
     box-sizing: border-box;

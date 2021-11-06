@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from "react";
-import ReactMapboxGl, {Layer, Feature, Marker, ZoomControl, Cluster} from 'react-mapbox-gl';
+import React, { useState, useEffect } from "react";
+import ReactMapboxGl, { Layer, Feature, Marker, ZoomControl, Cluster } from 'react-mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './map.css';
 
@@ -28,12 +28,12 @@ export default function MapComponent(props) {
             }}
             center={[props.lng, props.lat]}
         >
-            <ZoomControl/>
+            <ZoomControl />
             {data !== [] && data !== undefined && data !== null ?
                 data.map((el, index) => (
-                    el.lonlat[0] !== 0 && el.lonlat[1] !== 0 ?
+                    el.lonlat[0] !== 0 && el.lonlat[1] !== 0 && el.timestamp !== 0 ?
                         <Marker coordinates={[el.lonlat[0], el.lonlat[1]]} anchor="bottom">
-                            <div id={"marker_" + index}  className={'marker_div'} onClick={() => scrollTo(index)}/>
+                            <div id={"marker_" + index} className={'marker_div'} onClick={() => scrollTo(index)} />
                         </Marker>
                         : null
                 ))
