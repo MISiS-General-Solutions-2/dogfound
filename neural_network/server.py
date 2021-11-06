@@ -46,5 +46,14 @@ def get_classes(file: str) -> Response:
     return response
 
 
+@app.post("/api/cam-id")
+async def cam_id(req: str):
+    return cam_id(req.image)
+
+
+def cam_id(req: str) -> str:
+    return "PVN_hd_TSAO_5300_3"
+
+
 if __name__ == "__main__":
     uvicorn.run("server:app", reload=True, host="0.0.0.0", port=6002)
