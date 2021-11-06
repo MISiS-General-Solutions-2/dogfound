@@ -1,19 +1,20 @@
 class CFG:
     # Data path
-    DATA_PATH = "./data/detect"
+    DATA_PATH = "./data/new_detect"
     CLEAN_DATA_PATH = "./data/clean_dogs"
-    PATH_CSV = "./data/all.csv"
+    PATH_CSV = "./data/train_remarked.csv"
     PATH_OWNER = "./data/owner+dog.csv"
     CLEAN_CSV = "./data/clean_dogs.csv"
+    NEW_CSV = "./data/new_images.csv"
     # Logging
     LOG_DIR = "./logs"
-    OUTPUT_DIR = "resnet34_baseline+owner_data+clean_data"
+    OUTPUT_DIR = "resnet34_baseline+all_data_freeze-true"
     TEST_PATH = ""
 
     # Model setup
     model_name = "resnet34"
     pretrained = True
-    freeze = False
+    freeze = True
 
     # Main config
     GPU_ID = 1
@@ -21,7 +22,7 @@ class CFG:
     target_size = 5
 
     # Train configs
-    epochs = 50
+    epochs = 75
     early_stopping = 10
     batch_size = 16
     size = 224
