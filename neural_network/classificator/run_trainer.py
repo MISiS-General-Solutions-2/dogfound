@@ -38,23 +38,15 @@ def main():
     LOGGER.info("Reading data...")
     train_df = pd.read_csv(CFG.PATH_CSV)
     mask_train = train_df["image"].apply(check_paths)
-
     train_df = train_df[mask_train]
-
     train_df["color"] = train_df["color"].apply(lambda x: x - 1)
     train_df["tail"] = train_df["tail"].apply(lambda x: x - 1)
 
     print(train_df.shape)
 
-    train_df = train_df[["image", "color", "tail"]]
-
-    print(train_df.shape)
-
     owner_df = pd.read_csv(CFG.PATH_OWNER)
     mask_owner = owner_df["image"].apply(check_paths)
-
     owner_df = owner_df[mask_owner]
-
     owner_df["color"] = owner_df["color"].apply(lambda x: x - 1)
     owner_df["tail"] = owner_df["tail"].apply(lambda x: x - 1)
 
@@ -68,11 +60,19 @@ def main():
 
     print(clean_df.shape)
 
-    final_df = pd.concat([train_df, owner_df], axis=0)
+    new_df = pd.read_csv(CFG.NEW_CSV, sep=';')
+    new_df = new_df[["path+image", "color", "tail"]]
+    new_df.rename(columns={"path+image": "image"}, inplace=True)
+    mask_new = new_df["image"].apply(check_paths)
+    new_df = new_df[mask_new]
+    new_df["color"] = new_df["color"].apply(lambda x: x - 1)
+    new_df["tail"] = new_df["tail"].apply(lambda x: x - 1)
+
+    print(new_df.shape)
+
+    final_df = pd.concat([train_df, owner_df, new_df], axis=0)
 
     print(final_df.shape)
-
-    print(final_df.head())
 
     # Classes
     COLORS = [
