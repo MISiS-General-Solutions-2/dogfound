@@ -1,11 +1,17 @@
-import React, {useState} from "react";
-import {DateRange} from 'react-date-range';
+import React, { useState } from "react";
+import { DateRange, Calendar } from 'react-date-range';
 import Select from 'react-select'
+import Modal from 'react-modal';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import './array';
 import './search.css';
+import './array';
 import ListComponent from "../list-component/list";
+import axios from "axios";
+import arr from "./array";
+
+Modal.setAppElement('body');
 
 export default function Search(props) {
 
@@ -17,16 +23,21 @@ export default function Search(props) {
     const [error2, setError2] = useState(false);
     const [error3, setError3] = useState(false);
 
+    const [showStatus, setShowStatus] = useState(false);
+    const [date, setDate] = useState(null);
+    const [imgValue1, setImageValue1] = useState(null);
+    const [imgValue2, setImageValue2] = useState(null);
+
     const options1 = [
-        {value: 0, label: 'Любой'},
-        {value: 1, label: 'Cветлая'},
-        {value: 2, label: 'Темная'},
-        {value: 3, label: 'Разноцветная'}
+        { value: 0, label: 'Любой' },
+        { value: 1, label: 'Cветлая' },
+        { value: 2, label: 'Темная' },
+        { value: 3, label: 'Разноцветная' }
     ];
     const options2 = [
-        {value: 0, label: 'Любой'},
-        {value: 1, label: 'Длинный хвост'},
-        {value: 2, label: 'Короткий хвост'}
+        { value: 0, label: 'Любой' },
+        { value: 1, label: 'Длинный хвост' },
+        { value: 2, label: 'Короткий хвост' }
     ];
 
     const data = props.data;
@@ -56,7 +67,7 @@ export default function Search(props) {
 
     if (data === undefined) {
         return (
-            <search-component>
+            <search-component id={"search-component"}>
                 <p>Поиск питомца</p>
                 <div className="option">Дата пропажи
                     {error1 ? <div className="error">Поле не заполнено!</div> : null}
@@ -81,20 +92,69 @@ export default function Search(props) {
                 <Select options={options1} defaultValue={0} placeholder={"Цвет"} onChange={(e) => {
                     setValue1(e);
                     setError2(false);
-                }}/>
+                }} />
                 <div className="option">Тип хвоста
                     {error3 ? <div className="error">Поле не заполнено!</div> : null}
                 </div>
                 <Select options={options2} defaultValue={0} placeholder={"Хвост"} onChange={(e) => {
                     setValue2(e);
                     setError3(false);
-                }}/>
+                }} />
                 <button className={"SendButton"} onClick={sendDataButton}>Найти!</button>
+                <button className={"addImage"} onClick={() => setShowStatus(true)}>
+                    Добавить фото
+                </button>
+                <Modal
+                    isOpen={showStatus}
+                    onRequestClose={() => setShowStatus(false)}
+                >
+                    <p>Помощь в поиске собак</p>
+                    <p>Фотография питомца</p>
+                    <input type="file" id="fileInput" />
+                    <p>Дата пропажи</p>
+                    <Calendar
+                        date={date}
+                        onChange={item => setDate(item)}
+                    />
+                    <input type={"number"} id={"lonImg"} placeholder={"Долгота"} />
+                    <input type={"number"} id={"latImg"} placeholder={"Широта"} />
+                    <button className={"sendImgFinal"} onClick={() => {
+                        let filedata = document.getElementById("fileInput");
+                        let latImg = document.getElementById('lonImg').value;
+                        let lonImg = document.getElementById('latImg').value;
+                        if (filedata.files.length !== 0 && lonImg !== (null || '') && latImg !== (null || '')) {
+                            console.log('da');
+                            arr();
+                            let formData = new FormData();
+                            // let url = window.location.href + 'api/image/upload';
+                            let url = window.location.href + "api/image/upload?timestamp=" + date.getTime() / 1000 + '&lon=' + lonImg + '&lat=' + latImg;
+                            formData.append('file', filedata.files[0]);
+                            const options = {
+                                method: 'PUT',
+                                headers: { 'content-type': 'multipart/form-data' },
+                                data: formData,
+                                url
+                            };
+                            axios(options)
+                                .then(response => {
+                                    console.log(response);
+                                });
+                            setShowStatus(false)
+                        } else {
+                            alert('Введите данные!');
+                        }
+                    }}>
+                        Отправить
+                    </button>
+                    <p className={"addP"}>Помогите найти потерявшуюся собаку! <br /> Если вы обнаружили на улице животное
+                        без хозяина, <br /> сфотографируйте его как можно лучше и отправьте нам, <br /> а мы постараемся
+                        помочь хозяину его найти.</p>
+                </Modal>
             </search-component>
         );
     } else {
         return (
-            <ListComponent data={data} action1={action5} setLat={setLat} setLng={setLng}/>
+            <ListComponent data={data} action1={action5} setLat={setLat} setLng={setLng} />
         )
     }
 }

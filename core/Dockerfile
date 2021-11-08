@@ -28,4 +28,5 @@ COPY ./data /opt/dogfound/data
 
 RUN mkdir /opt/dogfound/data/volunteer_added
 
+
 CMD ["/opt/dogfound/core", "neural_network:6002","5"]

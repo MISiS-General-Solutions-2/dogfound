@@ -12,6 +12,8 @@ COPY ./requirements.txt ./
 RUN --mount=type=cache,mode=0777,target=~/.cache\
     python3 -m pip install -r requirements.txt
 
+RUN echo "vibe check"
+
 COPY . ./
 
 CMD [ "uvicorn", "server:app","--host", "0.0.0.0", "--port", "6002" ]

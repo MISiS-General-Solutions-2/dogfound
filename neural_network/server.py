@@ -1,12 +1,14 @@
+from typing import List
+
+import pandas as pd
+import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Any, List, Optional
-from pathlib import Path
-import uvicorn
 
 import detect
 
 app = FastAPI()
+test_results_df = pd.read_csv('notebooks/csv/results.csv', index_col=0, sep=',')
 
 
 class Request(BaseModel):
@@ -15,6 +17,11 @@ class Request(BaseModel):
 
 class Additional(BaseModel):
     crop: List[int]
+
+
+class AddrCamInfo(BaseModel):
+    cam_id: str
+    address: str
 
 
 class Response(BaseModel):
@@ -28,31 +35,32 @@ class Response(BaseModel):
     additional: Additional
 
 
-@app.get("/")
-async def categorize():
-    return {"msg": "hello"}
-
-
 @app.post("/api/categorize")
 async def categorize(req: Request):
-    return get_classes(req.image)
+    return inference(req.image)
 
 
-def get_classes(file: str) -> Response:
+def inference(file: str) -> Response:
     response = Response(is_animal_there=0, is_it_a_dog=0, is_the_owner_there=0,
                         color=0, tail=0, breed="", additional=Additional(crop=[0, 0, 0, 0]))
-
     response = detect.run_analytics(file, response)
     return response
 
 
 @app.post("/api/cam-id")
 async def cam_id(req: Request):
-    return cam_id(req.image)
+    return extra_info(req.image)
 
 
-def cam_id(req: str) -> str:
-    return "PVN_hd_TSAO_5300_3"
+def extra_info(file: str):
+    info = AddrCamInfo(cam_id="", address="")
+    file_name = file.split('/')[-1]
+    found = test_results_df[test_results_df['filename'] == file_name]
+    if len(found) > 0:
+        info.cam_id = found.iloc[0]['cam_id']
+        info.address = found.iloc[0]['address']
+    print(info.cam_id)
+    return info.cam_id
 
 
 if __name__ == "__main__":

@@ -13,6 +13,95 @@ search-component p {
     margin: unset;
 }
 
+.ReactModal__Content {
+    inset: unset !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 20px !important;
+    border: 1.5px solid #54A0FF !important;
+}
+
+.ReactModal__Content p {
+    margin: unset;
+}
+
+.ReactModal__Content p:nth-child(1) {
+    font-weight: bolder;
+    text-align: center;
+    font-size: 27.5px;
+    line-height: 27.5px;
+    color: #54A0FF;
+    margin-bottom: 10px;
+}
+
+.ReactModal__Content p:nth-child(2), .ReactModal__Content p:nth-child(4) {
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 20px;
+    color: #54A0FF;
+}
+
+.ReactModal__Content input, .ReactModal__Content input:active {
+    margin-bottom: 15px;
+    border-radius: 20px;
+    padding: 5px 20px;
+    border: 1.5px solid #54A0FF;
+    outline: none;
+}
+
+.ReactModal__Content .rdrCalendarWrapper {
+    border: 1.5px solid #54A0FF;
+    border-radius: 20px;
+}
+
+.ReactModal__Content .sendImgFinal {
+    border: 1.5px solid #54A0FF;
+    border-radius: 20px;
+    padding: 5px;
+    background-color: #54A0FF;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ReactModal__Content .addP {
+    margin: 10px -5px;
+    border: 1.5px solid #54A0FF;
+    padding: 7.5px;
+    background-color: #54A0FF;
+    color: white;
+    font-size: 15px;
+    text-align: center;
+    border-radius: 20px;
+}
+
+.addImage {
+    border: 1.5px solid #54A0FF;
+    border-radius: 20px;
+    padding: 5px;
+    background-color: #54A0FF;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.ReactModal__Overlay, .ReactModal__Overlay--after-open {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 search-component p:nth-child(1) {
     font-weight: 900;
     font-size: 50px;

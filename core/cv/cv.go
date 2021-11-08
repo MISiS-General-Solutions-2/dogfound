@@ -12,7 +12,7 @@ import (
 var imshow bool
 
 func ParseImage(img string) (camID string, timestamp int64, err error) {
-	// imshow = true
+	//imshow = true
 	// if img != "/opt/dogfound/data/new_images/B37.jpg" {
 	// 	return
 	// }

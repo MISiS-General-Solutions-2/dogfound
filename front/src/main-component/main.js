@@ -22,14 +22,8 @@ export default function Main() {
 
     function scrollTo(e) {
         if (id !== '' && id !== null) {
-            let elems = document.getElementsByClassName("listButton");
-            [].forEach.call(elems, function (el) {
-                el.classList.remove("Focus");
-            });
             document.getElementById(id).classList.remove("Focus");
-            console.log(document.getElementsByClassName('Focus'));
         }
-
         setId(e);
         document.getElementById(e).classList.add('Focus');
         scroller.scrollTo('img_' + e, {

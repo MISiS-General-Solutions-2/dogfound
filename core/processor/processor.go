@@ -146,6 +146,7 @@ func (r *processor) process(image string) {
 	fmt.Println(counter)
 	if counter == total {
 		fmt.Println("finished in ", time.Since(r.t1).Seconds())
+		counter = 0
 		withUnparsedCamIDs, err := database.SelectWithUnparsedCamIDs()
 		if err != nil {
 			fmt.Println(err)
@@ -220,7 +221,8 @@ func (r *processor) EnqueueVolunteerImage(image string, timestamp int, lat, lon 
 	r.volunteerInput <- volunteerAddedImage{filename: image, timestamp: timestamp, lonlat: [2]float64{lon, lat}}
 }
 func (r *processor) processAddressGuesses(image string) {
-	defaultCamID := "PVN_hd_TSAO_5300_3"
+	return
+	defaultCamID := ""
 	camID, err := http.GetCamID(r.Classificator, image)
 	if err != nil {
 		fmt.Println(err)

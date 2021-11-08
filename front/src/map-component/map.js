@@ -31,7 +31,7 @@ export default function MapComponent(props) {
             <ZoomControl/>
             {data !== [] && data !== undefined && data !== null ?
                 data.map((el, index) => (
-                    el.lonlat[0] !== 0 && el.lonlat[1] !== 0 && el.timestamp !== 0 ?
+                    el.lonlat[0] !== 0 && el.lonlat[1] !== 0 ?
                         <Marker coordinates={[el.lonlat[0], el.lonlat[1]]} anchor="bottom">
                             <div id={"marker_" + index}  className={'marker_div'} onClick={() => scrollTo(index)}/>
                         </Marker>

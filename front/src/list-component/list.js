@@ -24,7 +24,7 @@ export default function ListComponent(props) {
                 {data !== [] && data !== undefined && data !== null ? data.map((el, index) => (
                     <button name={'img_' + index} id={index} key={el.filename} className="listButton"
                         onClick={() => {
-                            if (el.timestamp !== 0 && el.lonlat[0] !== 0 && el.lonlat[1] !== 0) {
+                            if (el.lonlat[0] !== 0 && el.lonlat[1] !== 0) {
                                 setLng(el.lonlat[0]);
                                 setLat(el.lonlat[1]);
                                 if (markerId !== '' && markerId !== null) {
@@ -55,6 +55,7 @@ export default function ListComponent(props) {
                             </p>
                             : null}
                         <img src={window.location.href + "api/image/" + el.filename} alt="" />
+                        {/*<img src={"http://5.228.244.67:1022/api/image/" + el.filename} alt=""/>*/}
                     </button>
                 )) : null}
             </div>
